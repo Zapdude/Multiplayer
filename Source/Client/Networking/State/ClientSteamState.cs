@@ -21,6 +21,7 @@ namespace Multiplayer.Client
             connection.ChangeState(new ClientJoiningState(connection, username));
         }
 
+        // The server turned the connection away (server full, starting, throttled)
         [TypedPacketHandler]
         public void HandleDisconnected(ServerDisconnectPacket packet)
         {

@@ -28,8 +28,12 @@ public abstract class ClientBaseState(ConnectionBase connection) : MpConnectionS
         Multiplayer.session.ProcessTimeControl();
     }
 
-    // Currently handles disconnection only for Steam connections, as LiteNet has its own disconnection mechanism.
-    // See comment in ConnectionBase.Close for more info.
+    // Handled in every state: it can arrive while rejoining
+    [TypedPacketHandler]
+    public void HandleSyncReference(ServerSyncReferencePacket packet) =>
+        Multiplayer.session.isSyncReference = packet.isReference;
+
+    // Currently handles disconnection only for Steam connections. See comment in ConnectionBase.Close for more info.
     [TypedPacketHandler]
     public virtual void HandleDisconnected(ServerDisconnectPacket packet)
     {

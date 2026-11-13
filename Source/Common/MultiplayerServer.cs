@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,7 +65,7 @@ namespace Multiplayer.Common
         public Thread? serverThread;
         // Atomic latch: TryStop may be called both from a handler and from Run's
         // exit; teardown must run only once.
-        private int stopFlag;
+        private int stopped;
 
         public bool ArbiterPlaying => PlayingPlayers.Any(p => p.IsArbiter && p.status == PlayerStatus.Playing);
         public ServerPlayer HostPlayer => PlayingPlayers.First(p => p.IsHost);
@@ -80,6 +81,9 @@ namespace Multiplayer.Common
 
         public bool IsStandaloneServer { get; set; }
         public StandalonePersistence? persistence;
+
+        private int offThreadCalls;
+        public int OffThreadCalls => offThreadCalls;
 
         public MultiplayerServer(ServerSettings settings)
         {
@@ -98,6 +102,9 @@ namespace Multiplayer.Common
 
         public void Run()
         {
+            serverThread = Thread.CurrentThread;
+            // Pairs with TryStop: either it sees this thread and joins it, or this sees running cleared
+            Thread.MemoryBarrier();
             ServerLog.Detail("Server started");
 
             Stopwatch time = Stopwatch.StartNew();
@@ -119,6 +126,7 @@ namespace Multiplayer.Common
                     queue.RunQueue(ServerLog.Error);
                     netManagers.ForEach(manager => manager.Tick());
                     TickNet();
+                    worldData.Tick();
 
                     int ticked = 0;
                     while (realTime > 0 && ticked < 2)
@@ -181,7 +189,10 @@ namespace Multiplayer.Common
             NetTimer++;
 
             if (NetTimer % NetTicksPerSecond == 0)
+            {
                 playerManager.SendLatencies();
+                playerManager.CheckTimeouts();
+            }
 
 
             if (NetTimer % (NetTicksPerSecond / 5) == 0)
@@ -197,12 +208,15 @@ namespace Multiplayer.Common
 
             serverTimePerTick = PlayingIngamePlayers.MaxOrZero(p => p.frameTime);
 
-            if (serverTimePerTick < StandardTimePerTick)
+            // Written to also catch NaN
+            if (!(serverTimePerTick >= StandardTimePerTick))
                 serverTimePerTick = StandardTimePerTick;
 
             if (serverTimePerTick > StandardTimePerTick * 4f)
                 serverTimePerTick = StandardTimePerTick * 4f;
         }
+
+        public static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(5);
 
         public Thread StartServer(string threadName = "Server thread")
         {
@@ -216,31 +230,45 @@ namespace Multiplayer.Common
             return serverThread;
         }
 
-        // Waits for the server loop to end before tearing down, so nulling
-        // instance can't race with Tick (#991). Callers must clear running first.
-        // Never joins the loop thread itself, which would deadlock Run -> TryStop.
+        /// Stops the server once, later calls do nothing. Server state isn't thread safe, so called from another
+        /// thread, this waits for the server thread to finish its iteration and stop the server on its way out
+        /// (Run). Only if that takes too long is the server stopped from the calling thread.
         public void TryStop()
         {
-            if (serverThread is { } thread && thread != Thread.CurrentThread)
-            {
-                if (!thread.Join(TimeSpan.FromSeconds(5)))
-                    ServerLog.Error("Server loop thread did not stop within 5 seconds, proceeding with shutdown");
-            }
+            running = false;
+            Thread.MemoryBarrier();
 
-            if (Interlocked.CompareExchange(ref stopFlag, 1, 0) != 0)
-                return;
+            var thread = serverThread;
+            if (thread != null && thread != Thread.CurrentThread && !thread.Join(StopTimeout))
+                ServerLog.Error($"The server thread didn't stop within {StopTimeout.TotalSeconds}s, " +
+                                $"stopping the server from thread {Thread.CurrentThread.ManagedThreadId}");
+
+            if (Interlocked.Exchange(ref stopped, 1) != 0) return;
 
             ServerLog.Detail("Server shutting down...");
 
             playerManager.OnServerStop();
             netManagers.ForEach(manager => manager.Stop());
 
-            instance = null;
+            // A server stopping late mustn't clear the instance of the next one
+            Interlocked.CompareExchange(ref instance, null, this);
         }
-
         public void Enqueue(Action action)
         {
             queue.Enqueue(action);
+        }
+
+        /// Server state isn't thread-safe and the server thread defines the order of commands, so mutations from
+        /// other threads can race the tick loop. Use Enqueue to get onto the server thread.
+        public void CheckServerThread([CallerMemberName] string caller = "")
+        {
+            var thread = serverThread;
+            if (thread == null || thread == Thread.CurrentThread || !running) return;
+
+            // Limit the log spam, one stack trace is enough to find the culprit
+            if (Interlocked.Increment(ref offThreadCalls) <= 10)
+                ServerLog.Error($"{caller} called outside the server thread " +
+                                $"(thread {Thread.CurrentThread.ManagedThreadId}): {Environment.StackTrace}");
         }
 
         public void SendToPlaying<T>(T packet, bool reliable = true, ServerPlayer? excluding = null) where T : IPacket
@@ -269,7 +297,9 @@ namespace Multiplayer.Common
             ByteWriter writer = new ByteWriter();
             writer.WriteInt32(mapId);
 
-            var mapCmds = worldData.mapCmds.GetValueSafe(mapId) ?? [];
+            var mapCmds = worldData.cmds
+                .Where(cmd => ScheduledCommand.Deserialize(new ByteReader(cmd)).mapId == mapId)
+                .ToList();
             writer.WriteInt32(mapCmds.Count);
             foreach (var cmd in mapCmds)
                 writer.WritePrefixedBytes(cmd);
