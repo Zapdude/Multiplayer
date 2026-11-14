@@ -525,22 +525,4 @@ namespace Multiplayer.Client
         }
     }
 
-    public class ChatMsg_Url : ChatMsg
-    {
-        public override string Msg => url;
-        public override bool Clickable => true;
-
-        private string url;
-
-        public ChatMsg_Url(string url)
-        {
-            this.url = url;
-        }
-
-        public override void Click()
-        {
-            Application.OpenURL(url);
-        }
-    }
-
 }

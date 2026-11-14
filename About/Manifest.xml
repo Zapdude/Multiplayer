@@ -2,8 +2,8 @@
 
 <Manifest>
 
-  <identifier>Multiplayer</identifier>
-  <manifestUri>https://raw.githubusercontent.com/rwmt/Multiplayer/master/About/Manifest.xml</manifestUri>
-  <downloadUri>https://github.com/rwmt/Multiplayer/releases/latest</downloadUri>
+  <identifier>MultiplayerBodged</identifier>
+  <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/personal/dev-integration/About/Manifest.xml</manifestUri>
+  <downloadUri>https://github.com/Zapdude/Multiplayer/releases/latest</downloadUri>
 
 </Manifest>

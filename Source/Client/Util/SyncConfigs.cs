@@ -42,7 +42,7 @@ public static class SyncConfigs
     public static string[] ignoredConfigsModIds =
     [
         // todo unhardcode it
-        "rwmt.multiplayer",
+        "zap.multiplayerbodged",
         "hodlhodl.twitchtoolkit", // contains username
         "dubwise.dubsmintmenus",
         "dubwise.dubsmintminimap",

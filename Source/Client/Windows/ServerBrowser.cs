@@ -129,12 +129,6 @@ namespace Multiplayer.Client
             if (Button(TexButton.ToggleLog, compatLabel, MpUtil.TranslateWithDoubleNewLines(compatLabelDesc, 2), Color.grey, 20))
                 Find.WindowStack.Add(new ModCompatWindow(null, false, false, null));
 
-            if (Button(MultiplayerStatic.WebsiteIcon, "MpWebsiteButton", "MpLinkButtonDesc".Translate() + " " + Multiplayer.WebsiteLink, Color.grey, 20))
-                Application.OpenURL(Multiplayer.WebsiteLink);
-
-            if (Button(MultiplayerStatic.DiscordIcon, "MpDiscordButton", "MpLinkButtonDesc".Translate() + " " + Multiplayer.DiscordLink, Color.white))
-                Application.OpenURL(Multiplayer.DiscordLink);
-
             x += 10;
 
             // Before the note, which then may not fit anymore
