@@ -84,7 +84,9 @@ namespace Multiplayer.Client
                 writer.WritePrefixedUInts(map.randomStates);
             }
 
-            writer.WritePrefixedInts(desyncStackTraceHashes);
+            var (values, indices) = SyncOpinion.CompressTraceHashes(desyncStackTraceHashes);
+            writer.WritePrefixedInts(values);
+            writer.WritePrefixedInts(indices);
             writer.WriteBool(simulating);
             writer.WriteShort((short)roundMode);
 
@@ -97,22 +99,28 @@ namespace Multiplayer.Client
             worldRandomStates = sync.worldRandomStates,
             mapStates = sync.mapRandomStates.Select(state => new MapRandomStateData(state.mapId)
                 { randomStates = state.randomStates }).ToList(),
-            desyncStackTraceHashes = sync.traceHashes,
+            desyncStackTraceHashes = SyncOpinion.ExpandTraceHashes(sync.traceHashValues, sync.traceHashIndices),
             simulating = sync.simulating,
             roundMode = sync.roundMode
         };
 
-        public SyncOpinion ToNet() => new()
+        public SyncOpinion ToNet()
         {
-            startTick = startTick,
-            commandRandomStates = commandRandomStates,
-            worldRandomStates = worldRandomStates,
-            mapRandomStates = mapStates.Select(state => new MapRandomState
-                { mapId = state.mapId, randomStates = state.randomStates }).ToList(),
-            traceHashes = desyncStackTraceHashes,
-            simulating = simulating || tracesUnreliable,
-            roundMode = roundMode
-        };
+            var (values, indices) = SyncOpinion.CompressTraceHashes(desyncStackTraceHashes);
+
+            return new SyncOpinion
+            {
+                startTick = startTick,
+                commandRandomStates = commandRandomStates,
+                worldRandomStates = worldRandomStates,
+                mapRandomStates = mapStates.Select(state => new MapRandomState
+                    { mapId = state.mapId, randomStates = state.randomStates }).ToList(),
+                traceHashValues = values,
+                traceHashIndices = indices,
+                simulating = simulating || tracesUnreliable,
+                roundMode = roundMode
+            };
+        }
 
         public static ClientSyncOpinion Deserialize(ByteReader data)
         {
@@ -130,7 +138,9 @@ namespace Multiplayer.Client
                 maps.Add(new MapRandomStateData(mapId) { randomStates = mapData });
             }
 
-            var traceHashes = new List<int>(data.ReadPrefixedInts());
+            var values = new List<int>(data.ReadPrefixedInts());
+            var indices = new List<int>(data.ReadPrefixedInts());
+            var traceHashes = SyncOpinion.ExpandTraceHashes(values, indices);
             var simulating = data.ReadBool();
             var roundMode = data.ReadShort();
 
