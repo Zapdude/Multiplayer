@@ -162,6 +162,38 @@ public class ServerPlayingStateTest
     }
 
     [Test]
+    public void RejoinForgetsReportedMap()
+    {
+        var (player, _) = AddPlayer("player");
+        player.currentMapId = 0;
+        player.hasReportedCurrentMap = true;
+        var state = player.conn.GetState<ServerPlayingState>()!;
+
+        state.HandleRejoin(new ByteReader([]));
+
+        Assert.That(player.currentMapId, Is.EqualTo(-1));
+        Assert.That(player.hasReportedCurrentMap, Is.False);
+
+        // The client starts lastMovedToMapId from -1 after receiving the world data
+        var errors = new List<string>();
+        var prevError = ServerLog.error;
+        ServerLog.error = errors.Add;
+        try
+        {
+            state.HandleClientCommand(new ClientCommandPacket(CommandType.PlayerCount, ScheduledCommand.Global,
+                ByteWriter.GetBytes(-1, 0)));
+        }
+        finally
+        {
+            ServerLog.error = prevError;
+        }
+
+        Assert.That(errors, Is.Empty);
+        Assert.That(player.currentMapId, Is.EqualTo(0));
+        Assert.That(player.hasReportedCurrentMap, Is.True);
+    }
+
+    [Test]
     public void StaleKeepAliveDisconnectsPlayingPlayer()
     {
         var (host, hostConn) = AddPlayer("host");

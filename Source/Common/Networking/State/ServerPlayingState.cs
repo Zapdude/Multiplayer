@@ -31,6 +31,11 @@ namespace Multiplayer.Common
             Server.worldData.OnPlayerUnavailable(Player, "is rejoining");
             Server.playerManager.UpdateSyncReference();
 
+            // The client resets lastMovedToMapId when it receives the world data, so its next PlayerCount reports
+            // a transition from -1. The server has to start from the same value.
+            Player.currentMapId = -1;
+            Player.hasReportedCurrentMap = false;
+
             connection.ChangeState(ConnectionStateEnum.ServerLoading);
             Player.ResetTimeVotes();
         }
