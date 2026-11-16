@@ -332,9 +332,7 @@ namespace Multiplayer.Client
             SyncMethod.Register(typeof(PsychicRitualRoleAssignments), nameof(PsychicRitualRoleAssignments.TryAssignSpectate));
             SyncMethod.Register(typeof(PsychicRitualRoleAssignments), nameof(PsychicRitualRoleAssignments.RemoveParticipant));
 
-            SyncRituals.ApplyPrepatches(null);
-            if (!SyncRituals.PrepatchesApplied)
-                Log.Warning("Multiplayer: Prepatcher isn't active, ritual role assignments won't be shared between players");
+            SyncRituals.Init();
         }
 
         private static void InitChoiceLetters()

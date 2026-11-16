@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -89,11 +89,9 @@ namespace Multiplayer.Client
         // Pushes the default value of the type (nothing for void)
         static IEnumerable<CodeInstruction> CreateDefaultCodes(ILGenerator generator, Type type)
         {
+            if (type == typeof(void)) yield break;
             if (type.IsByRef)
                 type = type.GetElementType();
-
-            if (type == typeof(void))
-                yield break;
 
             if (AccessTools.IsClass(type)) {
                 yield return new CodeInstruction(OpCodes.Ldnull);

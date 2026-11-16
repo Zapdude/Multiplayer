@@ -207,13 +207,6 @@ namespace Multiplayer.Client
     {
         public static bool? result;
 
-        static void Prepare(MethodBase original)
-        {
-            // A one-line getter: keep the JIT from inlining it into callers, which would skip the patch
-            if (original != null)
-                MpUtil.MarkNoInlining(original);
-        }
-
         static void Postfix(ref bool __result)
         {
             if (result.HasValue)

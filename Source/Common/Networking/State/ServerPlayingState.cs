@@ -47,12 +47,11 @@ namespace Multiplayer.Common
         [TypedPacketHandler]
         public void HandleTraces(ClientTracesPacket packet)
         {
-            // Requested in PlayerManager.OnDesync
+            // Requested in PlayerManager.OnDesync from the host or, on standalone, the sync reference
             if (!Player.IsHost && Player != Server.playerManager.SyncReference) return;
             // The traces are up to ClientTracesPacket.MaxLength; a single packet over the limit would throw here and
             // disconnect the sender
-            Server.GetPlayer(packet.playerId)?.conn.SendFragmented(
-                ServerTracesPacket.Transfer(packet.rawTraces, packet.rawJittedMethods).Serialize());
+            Server.GetPlayer(packet.playerId)?.conn.SendFragmented(ServerTracesPacket.Transfer(packet.rawTraces).Serialize());
         }
 
         [TypedPacketHandler]

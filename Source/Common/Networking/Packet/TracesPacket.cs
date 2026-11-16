@@ -3,18 +3,16 @@ namespace Multiplayer.Common.Networking.Packet;
 [PacketDefinition(Packets.Client_Traces, allowFragmented: true)]
 public record struct ClientTracesPacket : IPacket
 {
-    // Compressed desync traces and jitted methods easily exceed the default limit, so only the packet size limits them
+    // Compressed desync traces easily exceed the default limit, so only the packet size limits them
     public const int MaxLength = ConnectionBase.MaxFragmentPacketTotalSize;
 
     public int playerId;
     public byte[] rawTraces;
-    public byte[] rawJittedMethods;
 
     public void Bind(PacketBuffer buf)
     {
         buf.Bind(ref playerId);
         buf.BindBytes(ref rawTraces, MaxLength);
-        buf.BindBytes(ref rawJittedMethods, MaxLength);
     }
 }
 
@@ -34,7 +32,6 @@ public record struct ServerTracesPacket : IPacket
 
     // Used in transfer only
     public byte[] rawTraces;
-    public byte[] rawJittedMethods;
 
     public static ServerTracesPacket Request(int tick, int diffAt, int playerId) => new()
     {
@@ -44,8 +41,8 @@ public record struct ServerTracesPacket : IPacket
         playerId = playerId
     };
 
-    public static ServerTracesPacket Transfer(byte[] rawTraces, byte[] rawJittedMethods) =>
-        new() { mode = Mode.Transfer, rawTraces = rawTraces, rawJittedMethods = rawJittedMethods };
+    public static ServerTracesPacket Transfer(byte[] rawTraces) =>
+        new() { mode = Mode.Transfer, rawTraces = rawTraces };
 
     public void Bind(PacketBuffer buf)
     {
@@ -59,7 +56,6 @@ public record struct ServerTracesPacket : IPacket
         else
         {
             buf.BindBytes(ref rawTraces, ClientTracesPacket.MaxLength);
-            buf.BindBytes(ref rawJittedMethods, ClientTracesPacket.MaxLength);
         }
     }
 }

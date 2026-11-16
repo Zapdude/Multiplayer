@@ -71,7 +71,7 @@ public class PsychicRitualSession : SemiPersistentSession, ISessionWithCreationR
     // Called by the starting player's dialog
     public void Start() => StartWithAssignments(assignments);
 
-    // See RitualSession.StartWithAssignments: without Prepatcher the role assignments may differ between clients
+    // See RitualSession.StartWithAssignments: the role assignments may differ between clients
     [SyncMethod(exposeParameters = new[] { 0 })]
     private void StartWithAssignments(MpPsychicRitualAssignments startingAssignments)
     {

@@ -2,9 +2,7 @@ using HarmonyLib;
 using Multiplayer.Client.Util;
 using RimWorld;
 using RimWorld.Planet;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
@@ -68,31 +66,21 @@ namespace Multiplayer.Client.Patches
             yield return AccessTools.Method(typeof(TargetInfo), nameof(TargetInfo.GetHashCode));
         }
 
-        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> insts, MethodBase original)
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> insts)
         {
-            int patched = 0;
-
             foreach (var inst in insts)
             {
                 if (inst.operand as MethodInfo == Combine)
-                {
                     inst.operand = AccessTools.Method(typeof(PatchTargetInfoHashCodes), nameof(CombineHashes));
-                    patched++;
-                }
 
                 yield return inst;
             }
-
-            if (patched == 0)
-                Multiplayer.LoadingError($"MP: Couldn't find Gen.HashCombine<Map> in {original.DeclaringType}:{original.Name}. Was the original method changed?");
         }
 
         static int CombineHashes(int seed, Map map) => Gen.HashCombineInt(seed, map?.uniqueID ?? -1);
     }
 
-    // Vanilla hashes the first thing, which changes while trading. The identity hash differs between clients, which
-    // is fine as long as Tradeables are only kept in hash containers locally (TradingUI, buffered sync fields) and
-    // the simulation keeps them in lists (TradeDeal). Don't iterate a hash container of Tradeables in synced code.
+    // todo does this cause issues?
     [HarmonyPatch(typeof(Tradeable), nameof(Tradeable.GetHashCode))]
     static class TradeableHashCode
     {
@@ -104,140 +92,22 @@ namespace Multiplayer.Client.Patches
         }
     }
 
-    // Have created a patch that will handle 2-8 System.HashCode.Combine functions.
-    // System.HashCode uses a random per-process seed. These patches make the all-int overloads deterministic.
-    // They're applied early (before def loading) and unconditionally so that the hash function doesn't change while
-    // hash containers are alive: switching it only while connected broke lookups in containers filled before
-    // connecting, and left containers filled during def loading in a per-process order.
-    // Combine with other type arguments and HashCode.Add/ToHashCode still use the random seed.
-    // TODO: Check the following:
-    // TileQueryParams.GetHashCode
-    // UnmanagedGridTraverseParams.GetHashCode
-    // MapGridRequest.GetHashCode
-    // SimplifiedPastureNutritionSimulator.GetHashCode
-    // FieldAliasCache.GetHashCode
-    static class HashCodeDetours
-    {
-        private static readonly Type HashCodeType = typeof(string).Assembly.GetType("System.HashCode");
-
-        internal static MethodBase GetCombineIntMethod(int numOfInts)
-        {
-            Type[] intTypes = Enumerable.Repeat(typeof(int), numOfInts).ToArray();
-
-            // Look for a pre-compiled int,int,… overload (only exists on some runtimes)
-            MethodInfo method = HashCodeType.GetMethod("Combine", BindingFlags.Public | BindingFlags.Static, binder: null, types: intTypes, modifiers: null);
-            if (method != null)
-                return method;   // good – no generics involved
-
-            // Fall back to the generic definition and close it for <int,…,int>
-            MethodInfo genericMethod = HashCodeType.GetMethods(BindingFlags.Public | BindingFlags.Static)
-                                 .First(x =>
-                                    x.Name == "Combine" &&
-                                    x.IsGenericMethodDefinition &&
-                                    x.GetGenericArguments().Length == numOfInts);
-
-            return genericMethod.MakeGenericMethod(intTypes);
-        }
-    }
-
-    //  ─── PATCH 2 ints ─────────────────────────────────────────
-    [EarlyPatch]
+    // Patch game callers rather than System.HashCode: ValueTuple and Dictionary
+    // also use Combine, and changing it when a session starts invalidates their keys.
     [HarmonyPatch]
-    static class Combine2Patch
+    static class DeterministicGameHashCalls
     {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(2);
-
-        static bool Prefix(int value1, int value2, ref int __result)
+        static IEnumerable<MethodBase> TargetMethods()
         {
-            __result = Gen.HashCombineInt(value1, value2);
-            return false;
+            yield return AccessTools.PropertyGetter(typeof(Map), nameof(Map.NextGenSeed));
+            yield return AccessTools.PropertyGetter(typeof(Gravship), nameof(Gravship.ConstantRandSeed));
+            yield return AccessTools.Method(typeof(LayoutWorker), "FillAllRooms");
+            yield return AccessTools.Method(typeof(Building_Trap), nameof(Building_Trap.KnowsOfTrap));
+            yield return AccessTools.Method(typeof(PathFinderCostTuning), nameof(PathFinderCostTuning.GetHashCode));
+            yield return AccessTools.Method(typeof(FastTileFinder.TileQueryParams), nameof(FastTileFinder.TileQueryParams.GetHashCode));
         }
-    }
 
-    //  ─── PATCH 3 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine3Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(3);
-
-        static bool Prefix(int value1, int value2, int value3, ref int __result)
-        {
-            __result = DeterministicHash.HashCombineInt(value1, value2, value3);
-            return false;
-        }
-    }
-
-    //  ─── PATCH 4 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine4Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(4);
-
-        static bool Prefix(int value1, int value2, int value3, int value4, ref int __result)
-        {
-            __result = Gen.HashCombineInt(value1, value2, value3, value4);
-            return false;
-        }
-    }
-
-    //  ─── PATCH 5 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine5Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(5);
-
-        static bool Prefix(int value1, int value2, int value3, int value4, int value5, ref int __result)
-        {
-            __result = DeterministicHash.HashCombineInt(value1, value2, value3, value4, value5);
-            return false;
-        }
-    }
-
-    //  ─── PATCH 6 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine6Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(6);
-
-        static bool Prefix(int value1, int value2, int value3, int value4, int value5, int value6, ref int __result)
-        {
-            __result = DeterministicHash.HashCombineInt(value1, value2, value3,
-                                                  value4, value5, value6);
-            return false;
-        }
-    }
-
-    //  ─── PATCH 7 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine7Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(7);
-
-        static bool Prefix(int value1, int value2, int value3, int value4, int value5, int value6, int value7, ref int __result)
-        {
-            __result = DeterministicHash.HashCombineInt(value1, value2, value3, value4,
-                                                  value5, value6, value7);
-            return false;
-        }
-    }
-
-    //  ─── PATCH 8 ints ─────────────────────────────────────────
-    [EarlyPatch]
-    [HarmonyPatch]
-    static class Combine8Patch
-    {
-        static MethodBase TargetMethod() => HashCodeDetours.GetCombineIntMethod(8);
-
-        static bool Prefix(int value1, int value2, int value3, int value4, int value5, int value6, int value7, int value8, ref int __result)
-        {
-            __result = DeterministicHash.HashCombineInt(value1, value2, value3, value4,
-                                                  value5, value6, value7, value8);
-            return false;
-        }
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) =>
+            HashCodeTranspiler.ReplaceCalls(instructions);
     }
 }

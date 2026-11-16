@@ -131,20 +131,11 @@ namespace Multiplayer.Client
 
             x += 10;
 
-            // Before the note, which then may not fit anymore
-            if (PrepatcherWarning.Show)
-            {
-                var warningWidth = PrepatcherWarning.LabelWidth(GameFont.Small);
-                using (MpStyle.Set(TextAnchor.MiddleLeft))
-                    PrepatcherWarning.DrawLabel(new Rect(x, 0, warningWidth, 24f));
-                x += warningWidth + 15;
-            }
-
-            Widgets.Label(new Rect(x, 0, 400, 24), "Note: Multiplayer for 1.6 is a work in progress.");
+            Widgets.Label(new Rect(x, 0, 400, 24), "Note: Multiplayer for 1.7 is a work in progress.");
 
             const string v15Notice =
                 """
-                1.6 and Odyssey compatibility is a work-in-progress. Compatibility with other mods is likely going to take the longest to flesh out.
+                1.7 compatibility is a work-in-progress. Compatibility with other mods is likely going to take the longest to flesh out.
 
                 Downgrade RimWorld to 1.5 if you want to continue playing a stable version.
                 """;

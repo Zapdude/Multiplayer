@@ -40,7 +40,6 @@ namespace Multiplayer.Client
 
             Multiplayer.session.Update();
             SyncFieldUtil.UpdateSync();
-            VTRSync.UpdateView();
 
             if (PerformanceRecorder.IsRecording)
             {
@@ -70,7 +69,6 @@ namespace Multiplayer.Client
 
         public void OnApplicationQuit()
         {
-            JittedMethods.OnApplicationQuit();
             Multiplayer.StopMultiplayer();
         }
 

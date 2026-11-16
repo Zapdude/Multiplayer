@@ -110,10 +110,6 @@ namespace Multiplayer.Client
                 DoTabButton(entry.Down(50f).Width(140).Height(40f), Tab.Gameplay);
             }
 
-            // Below the tab buttons, the column is empty there
-            if (PrepatcherWarning.Show)
-                PrepatcherWarning.DrawLabel(entry.Down(100f).Width(140).Height(50f), GameFont.Tiny);
-
             if (tab == Tab.Connecting)
                 DoConnecting(entry.MinX(entry.xMin + 150));
             else

@@ -145,12 +145,12 @@ public class SyncReferenceTest
         server.playerManager.OnDesync(desynced, 0, 0);
         Assert.That(Conn(reference).SentPackets, Does.Contain(Packets.Server_Traces));
 
-        // Compressed traces and jitted methods can exceed a single packet
+        // Compressed traces can exceed a single packet
         var traces = new byte[ConnectionBase.MaxSinglePacketSize * 2];
         new Random(1).NextBytes(traces);
         Assert.DoesNotThrow(() => reference.conn.GetState<ServerPlayingState>()!.HandleTraces(new ClientTracesPacket
         {
-            playerId = desynced.id, rawTraces = traces, rawJittedMethods = [1]
+            playerId = desynced.id, rawTraces = traces
         }));
 
         var sent = Conn(desynced).SentRaw.Where(raw => (Packets)(raw[0] & 0x3F) == Packets.Server_Traces).ToList();

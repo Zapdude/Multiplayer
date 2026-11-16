@@ -88,8 +88,8 @@ namespace Multiplayer.Client
         // Always empty: map commands are queued in AsyncWorldTimeComp.cmds to keep a single global order
         public Queue<ScheduledCommand> cmds = new();
 
-        public int CurrentPlayerCount { get; private set; }
-        public void ResetPlayerCount() => CurrentPlayerCount = 0;
+        private int currentPlayerCount;
+        public int CurrentPlayerCount => currentPlayerCount;
         public int VTR => CurrentPlayerCount > 0 ? VTRSync.MinimumVtr : VTRSync.MaximumVtr;
 
         public AsyncTimeComp(Map map, int gameStartAbsTick = 0)
@@ -298,6 +298,7 @@ namespace Multiplayer.Client
 
         public void ExposeData()
         {
+            Scribe_Values.Look(ref currentPlayerCount, "currentPlayerCount");
             Scribe_Values.Look(ref mapTicks, "mapTicks");
             Scribe_Values.Look(ref timeSpeedInt, "timeSpeed");
 
@@ -306,18 +307,14 @@ namespace Multiplayer.Client
                 gameStartAbsTickMap = Find.TickManager.gameStartAbsTick;
 
             Scribe_Custom.LookULong(ref randState, "randState", 1);
-
-            // Affects the simulation through VTR. Saved so that it survives join point reloads and joiners start
-            // with the same counts as everyone else.
-            var playerCount = CurrentPlayerCount;
-            Scribe_Values.Look(ref playerCount, "playerCount");
-            CurrentPlayerCount = playerCount;
         }
 
-        public int IncreasePlayerCount() => CurrentPlayerCount += 1;
+        public void ResetPlayerCount() => currentPlayerCount = 0;
+
+        public int IncreasePlayerCount() => currentPlayerCount += 1;
         // This should never go below 0, this is just defensive programming. Hopefully not needed anymore, but
         // nevertheless still left.
-        public int DecreasePlayerCount() => CurrentPlayerCount = Math.Max(0, CurrentPlayerCount - 1);
+        public int DecreasePlayerCount() => currentPlayerCount = Math.Max(0, currentPlayerCount - 1);
 
         public void FinalizeInit()
         {

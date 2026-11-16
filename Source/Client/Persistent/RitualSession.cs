@@ -31,9 +31,8 @@ public class RitualSession : SemiPersistentSession
     // Called by the starting player's dialog
     public void Start() => StartWithAssignments(data.assignments);
 
-    // Without Prepatcher the role selection widget's methods aren't synced, so each client may have its own role
-    // assignments by now. The starting player's assignments are sent along and applied on every client (with
-    // Prepatcher they're the same everywhere already).
+    // Each client may have its own role assignments by now, so the starting player's assignments are sent along and
+    // applied on every client.
     [SyncMethod(exposeParameters = new[] { 0 })]
     private void StartWithAssignments(MpRitualAssignments startingAssignments)
     {

@@ -189,15 +189,13 @@ namespace Multiplayer.Client
                 connection.SendFragmented(new ClientTracesPacket
                     {
                         playerId = packet.playerId,
-                        rawTraces = GZipStream.CompressString(response),
-                        rawJittedMethods = GZipStream.CompressString(JittedMethods.GetJittedMethodsString())
+                        rawTraces = GZipStream.CompressString(response)
                     }.Serialize());
             }
             else if (packet.mode == ServerTracesPacket.Mode.Transfer)
             {
                 var traces = GZipStream.UncompressString(packet.rawTraces);
-                var jittedMethods = GZipStream.UncompressString(packet.rawJittedMethods);
-                var hostInfo = new SaveableDesyncInfo.HostInfo(traces, jittedMethods);
+                var hostInfo = new SaveableDesyncInfo.HostInfo(traces);
                 Find.WindowStack.WindowOfType<DesyncedWindow>()?.HandleHostDesyncInfo(hostInfo);
             }
         }

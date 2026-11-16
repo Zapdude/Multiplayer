@@ -27,6 +27,7 @@ namespace Multiplayer.Client
         {
             Log.Message("Starting the server");
 
+            VTRSync.Reset();
             CreateSession(settings);
 
             if (!fromReplay)
@@ -45,12 +46,12 @@ namespace Multiplayer.Client
             Multiplayer.session.dataSnapshot = await CreateGameData();
 
             MakeHostOnServer(serverConn);
+            VTRSync.Start();
 
             // todo handle sending cmds for hosting from loaded replay?
             SaveLoad.SendGameData(Multiplayer.session.dataSnapshot, false);
 
             StartLocalServer();
-            VTRSync.AnnounceCurrentView();
         }
 
         private static void CreateSession(ServerSettings settings) =>
