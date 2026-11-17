@@ -68,6 +68,8 @@ public static class Loader
         // If the client gets disconnected during loading
         if (Multiplayer.Client == null) return;
 
+        var session = Multiplayer.session;
+
         Multiplayer.session.dataSnapshot = Multiplayer.session.dataSnapshot with
         {
             CachedAtTime = TickPatch.Timer
@@ -75,15 +77,32 @@ public static class Loader
 
         Multiplayer.session.replayTimerStart = TickPatch.Timer;
 
-        Multiplayer.game.ChangeRealPlayerFaction(
-            Find.FactionManager.GetById(Multiplayer.session.myFactionId) ?? Multiplayer.WorldComp.spectatorFaction
-        );
-        Multiplayer.game.myFactionLoading = null;
-
-        // The only place the command queue is rebuilt: all cmds since the snapshot, in order, including the ones
-        // received while loading. Runs on the main thread, like MultiplayerSession.ScheduleCommand.
-        Multiplayer.AsyncWorldTime.cmds = new Queue<ScheduledCommand>(Multiplayer.session.dataSnapshot.Cmds);
-        Multiplayer.session.cmdQueueReady = true;
+        try
+        {
+            Multiplayer.game.ChangeRealPlayerFaction(
+                Find.FactionManager.GetById(Multiplayer.session.myFactionId) ?? Multiplayer.WorldComp.spectatorFaction
+            );
+            Multiplayer.game.myFactionLoading = null;
+        }
+        catch (Exception e)
+        {
+            // The game is loaded but not playable. Stop the session instead of keeping a client that records every
+            // command it receives and never runs one.
+            Log.Error($"Multiplayer: failed to finish loading the game: {e}");
+            session.cmdQueueReady = true;
+            Multiplayer.StopMultiplayerAndClearAllWindows();
+            throw;
+        }
+        finally
+        {
+            // The only place the command queue is rebuilt: all cmds since the snapshot, in order, including the ones
+            // received while loading. Runs on the main thread, like MultiplayerSession.ScheduleCommand.
+            if (Multiplayer.session == session && Multiplayer.Client != null)
+            {
+                Multiplayer.AsyncWorldTime.cmds = new Queue<ScheduledCommand>(session.dataSnapshot.Cmds);
+                session.cmdQueueReady = true;
+            }
+        }
     }
 
     private static XmlDocument DataSnapshotToXml(GameDataSnapshot dataSnapshot, List<int> mapsToLoad)
