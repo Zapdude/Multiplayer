@@ -99,4 +99,60 @@ public class SyncOpinionCompressionTest
         Assert.That(serialized.Length, Is.LessThan(ClientSyncInfoPacket.MaxLength));
         Assert.That(RoundTrip(Opinion(hashes)), Is.EqualTo(hashes));
     }
+
+    [Test]
+    public void JoinPathReadsTheServerForwardedOpinion()
+    {
+        var hashes = new[] { 5, 5, 6, 5, 7 };
+        var fromClient = new ClientSyncInfoPacket { SyncOpinion = Opinion(hashes) }.Serialize();
+        var forwarded = new ServerSyncInfoPacket { rawSyncOpinion = fromClient.data }.Serialize();
+
+        // The server stores and forwards the client's bytes verbatim, ClientLoadingState reads them with FromBytes
+        var opinion = SyncOpinion.FromBytes(forwarded.data);
+
+        Assert.That(SyncOpinion.ExpandTraceHashes(opinion.traceHashValues, opinion.traceHashIndices),
+            Is.EqualTo(hashes));
+    }
+
+    [Test]
+    public void IndexWidthFollowsTheLargestIndex()
+    {
+        Assert.That(SyncOpinion.IndicesFitUShort([]), Is.True);
+        Assert.That(SyncOpinion.IndicesFitUShort([0, 9]), Is.True);
+        Assert.That(SyncOpinion.IndicesFitUShort([ushort.MaxValue]), Is.True);
+        Assert.That(SyncOpinion.IndicesFitUShort([ushort.MaxValue + 1]), Is.False);
+        Assert.That(SyncOpinion.IndicesFitUShort([-1]), Is.False);
+    }
+
+    [Test]
+    public void HandBuiltOutOfRangeIndexIsRejected()
+    {
+        var opinion = Opinion(1, 2, 3);
+        opinion.traceHashIndices = [0, 3];
+
+        Assert.Throws<WriterException>(() => new ClientSyncInfoPacket { SyncOpinion = opinion });
+    }
+
+    [Test]
+    public void DefaultOpinionRoundTrips()
+    {
+        var packet = new ClientSyncInfoPacket { SyncOpinion = default };
+        var restored = SyncOpinion.FromBytes(packet.Serialize().data);
+
+        Assert.That(restored.traceHashValues, Is.Empty);
+        Assert.That(restored.traceHashIndices, Is.Empty);
+    }
+
+    [Test]
+    public void OpinionTooBigForThePacketIsRejected()
+    {
+        const int distinct = 70_000; // forces int indices
+        const int traces = 2_100_000;
+
+        var opinion = Opinion();
+        opinion.traceHashValues = Enumerable.Range(0, distinct).ToList();
+        opinion.traceHashIndices = Enumerable.Range(0, traces).Select(i => i % distinct).ToList();
+
+        Assert.Throws<WriterException>(() => new ClientSyncInfoPacket { SyncOpinion = opinion });
+    }
 }

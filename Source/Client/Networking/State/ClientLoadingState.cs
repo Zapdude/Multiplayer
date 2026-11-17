@@ -5,6 +5,7 @@ using Ionic.Zlib;
 using Multiplayer.Client.Patches;
 using Multiplayer.Client.Saving;
 using Multiplayer.Common;
+using Multiplayer.Common.Networking.Packet;
 using Verse;
 
 namespace Multiplayer.Client;
@@ -124,9 +125,19 @@ public class ClientLoadingState(ConnectionBase connection) : ClientBaseState(con
         TickPatch.serverFrozen = serverFrozen;
 
         int syncInfos = data.ReadInt32();
+        if (syncInfos < 0 || syncInfos > data.Left / sizeof(int))
+            throw new ReaderException($"Invalid sync opinion count ({syncInfos}) for {data.Left} remaining bytes");
+
         var initialOpinions = new List<ClientSyncOpinion>(syncInfos);
         for (int i = 0; i < syncInfos; i++)
-            initialOpinions.Add(ClientSyncOpinion.Deserialize(new ByteReader(data.ReadPrefixedBytes())));
+        {
+            // The server forwards the opinions verbatim, in the SyncOpinion wire format
+            var raw = data.ReadPrefixedBytes();
+            if (raw == null)
+                throw new ReaderException("Missing sync opinion");
+
+            initialOpinions.Add(ClientSyncOpinion.FromNet(SyncOpinion.FromBytes(raw)));
+        }
 
         Log.Message(syncInfos > 0
             ? $"Initial sync opinions: {initialOpinions.First().startTick}...{initialOpinions.Last().startTick}"
