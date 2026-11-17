@@ -1,8 +1,8 @@
 # Multiplayer Bodged changelog
 
 A personal fork of [Multiplayer](https://github.com/rwmt/Multiplayer), built on
-`upstream/dev` at `ddfccdb` (0.11.5). It integrates six open upstream pull
-requests and adds one fix of its own.
+`upstream/dev` at `ddfccdb` (0.11.5), with six upstream pull requests integrated
+by hand and fixes of its own.
 
 This fork is for personal use. Reports about it should not go to the upstream
 team.
@@ -13,8 +13,7 @@ team.
 
 ## Integrated pull requests
 
-All six are still open upstream at the time of writing, so none of this is in a
-released Multiplayer build.
+Six PRs, none of them in a released Multiplayer build.
 
 ### #996 — Broad desync fixes (WoodyWizard)
 
@@ -101,10 +100,19 @@ into it, instead of a flat list.
 
 In my testing it halved payload size on average with large modlists.
 
+### Sync opinion encoding on the join path
+
+Forwarded sync opinions in the world data were read with the report format, so a
+join while the server held a stored opinion shifted the stream and disconnected
+the joiner. They are read with `SyncOpinion` now, and the index width follows the
+largest index. Out-of-range indices are rejected instead of cast, and null lists
+serialize as empty. Opinions produced by `CompressTraceHashes` keep their
+encoding, so the protocol is unchanged.
+
 ### Protocol
 
-`MpVersion.Protocol` is bumped from 57 to 58. This fork can't connect to stock
-0.11.5 clients, and stock clients can't connect to it.
+`MpVersion.Protocol` is 58. This fork can't connect to stock 0.11.5 clients, and
+stock clients can't connect to it.
 
 ### Tests
 
@@ -112,9 +120,24 @@ In my testing it halved payload size on average with large modlists.
 `LargeTraceCountSerializes`, which checks that a list of 2,532,642 traces with
 1,000 distinct values round-trips correctly. The full suite passes.
 
+## Rejoin and reload fixes
+
+- A desynced or rejoining host is no longer the sync reference or uploader, so a
+  desync-triggered join point doesn't wait on a client that can't produce the
+  save. World uploads with a missing save, session or map are rejected.
+- A failed load rebuilds the command queue and stops the session instead of
+  leaving the client recording commands it never applies.
+- A failed map entry restores the enclosing map's context, so the rest of the
+  world tick still runs with one.
+- A nested long event restores the enclosing event's faction on exit instead of
+  the local player's.
+- The disabled map streaming path is gone; its packet id stays reserved.
+- A rejoining client no longer logs an inconsistent-map error on its first
+  player count report.
+
 ## Fork housekeeping
 
-- Renamed to **Multiplayer Bodged** with package ID `zap.MultiplayerBodged`, and
+- Renamed to **Multiplayer Bodged** with package ID `zap.multiplayerbodged`, and
   declared incompatible with `rwmt.Multiplayer` so the Workshop version can't
   load alongside it.
 - `SyncConfigs.ignoredConfigsModIds` updated to the new package ID. Both the
