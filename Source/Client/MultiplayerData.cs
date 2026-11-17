@@ -1,3 +1,4 @@
+using Multiplayer.Client.Compatibility;
 using Multiplayer.Common;
 using RimWorld;
 using System;
@@ -154,6 +155,8 @@ namespace Multiplayer.Client
                 var defs = GenDefDatabase.GetAllDefsInDatabaseForDef(defType);
                 dict.Add(defType.Name, GetDefInfo(defs, d => GenText.StableStringHash(d.defName)));
             }
+
+            StartupSettings.AddDefInfos(dict);
 
             localDefInfos = dict;
         }

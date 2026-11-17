@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using Multiplayer.Client.Compatibility;
 using Multiplayer.Client.Networking;
 using Multiplayer.Client.Persistent;
 using Multiplayer.Client.Util;
@@ -483,6 +484,9 @@ namespace Multiplayer.Client
 
         static bool TryStartLocalServer(ServerSettings settings)
         {
+            if (!StartupSettings.HostCanUseLoadedSettings())
+                return false;
+
             var localServer = new MultiplayerServer(settings);
             var success = true;
 

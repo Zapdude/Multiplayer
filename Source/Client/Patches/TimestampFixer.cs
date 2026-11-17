@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using Multiplayer.Client.Util;
 using Multiplayer.Common;
@@ -94,6 +95,81 @@ public static class TimestampFixer
         if (p.royalty != null)
             foreach (var permit in p.royalty.AllFactionPermits)
                 ProcessExposable(permit);
+    }
+
+    // The map whose clock the pawn's saved timestamps belong to: the map it was last on, or the map holding it now.
+    // World pawns and pawns waiting on the world clock return null.
+    public static Map GetPawnClockMap(Pawn pawn)
+    {
+        if (pawn == null) return null;
+
+        var comp = pawn.GetComp<MultiplayerPawnComp>();
+        if (comp != null && comp.worldPawnRemoveTick != -1) return null;
+        if (Find.World != null && Find.WorldPawns.Contains(pawn)) return null;
+
+        if (comp != null && comp.lastMap >= 0)
+        {
+            var map = Find.Maps.FirstOrDefault(m => m.uniqueID == comp.lastMap);
+            if (map != null) return map;
+        }
+
+        return pawn.MapHeld;
+    }
+
+    internal static int HolderDepth(Thing thing)
+    {
+        var depth = 0;
+        for (var holder = thing.ParentHolder; holder != null; holder = holder.ParentHolder)
+            depth++;
+        return depth;
+    }
+
+    internal static void MovePassengers(List<(Pawn pawn, Map source)> passengers, Map target)
+    {
+        MoveThings(passengers, target, null, null);
+    }
+
+    internal static void MovePawnGraph(Pawn pawn, Map source, Map target)
+    {
+        var passengers = ThingOwnerUtility.GetAllThingsRecursively(pawn, true)
+            .OfType<Pawn>()
+            .Where(p => p.GetComp<MultiplayerPawnComp>() != null)
+            .Append(pawn)
+            .Distinct()
+            .OrderByDescending(HolderDepth)
+            .ThenBy(p => p.thingIDNumber)
+            .Select(p => (pawn: p, source: p == pawn ? source : GetPawnClockMap(p)))
+            .ToList();
+
+        MovePassengers(passengers, target);
+    }
+
+    // Moves pawns and things between clocks, shifting their saved timestamps and remembering where they went.
+    // A null target means the world clock.
+    internal static void MoveThings(
+        List<(Pawn pawn, Map source)> passengers,
+        Map target,
+        IEnumerable<Thing> things,
+        Map thingSource)
+    {
+        foreach (var (pawn, source) in passengers)
+        {
+            var destination = target != null && Find.WorldPawns.Contains(pawn) ? null : target;
+
+            FixPawn(pawn, source, destination);
+
+            var comp = pawn.GetComp<MultiplayerPawnComp>();
+            if (comp == null) continue;
+
+            comp.lastMap = destination?.uniqueID ?? -1;
+            comp.worldPawnRemoveTick = destination == null ? Multiplayer.AsyncWorldTime.worldTicks : -1;
+        }
+
+        if (things == null) return;
+
+        foreach (var thing in things)
+            if (thing is Pawn pawn && !passengers.Any(p => p.pawn == pawn))
+                FixPawn(pawn, thingSource, target);
     }
 
     public static void ProcessExposable(IExposable exposable)

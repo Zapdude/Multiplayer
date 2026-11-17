@@ -341,6 +341,7 @@ namespace Multiplayer.Client
             executingCmdMap = map;
             TickPatch.currentExecutingCmdIssuedBySelf = cmd.IsIssuedBySelf() && !TickPatch.Simulating;
             TickPatch.currentExecutingCmdType = cmdType;
+            TickPatch.currentExecutingCmdPlayerId = cmd.playerId;
 
             int randDepth = Rand.stateStack.Count;
             PreContext();
@@ -421,6 +422,7 @@ namespace Multiplayer.Client
 
                 TickPatch.currentExecutingCmdIssuedBySelf = false;
                 TickPatch.currentExecutingCmdType = null;
+                TickPatch.currentExecutingCmdPlayerId = -1;
                 executingCmdMap = null;
 
                 if (!keepTheMap)

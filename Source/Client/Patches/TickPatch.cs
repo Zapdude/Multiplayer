@@ -25,6 +25,7 @@ namespace Multiplayer.Client
         public static int workTicks;
         public static bool currentExecutingCmdIssuedBySelf;
         public static CommandType? currentExecutingCmdType;
+        public static int currentExecutingCmdPlayerId = -1;
         // Changes at the start of every command, tick of a tickable and sim long event. Interface code (and so a frame) can't run
         // within one step, so caches keyed by it behave the same on every client, unlike ones keyed by frame.
         public static int simStep;
@@ -403,6 +404,9 @@ namespace Multiplayer.Client
             serverTimePerTick = 0;
             avgFrameTime = StandardTimePerFrame;
             realTime = 0;
+            currentExecutingCmdIssuedBySelf = false;
+            currentExecutingCmdType = null;
+            currentExecutingCmdPlayerId = -1;
             TimeControlPatch.prePauseTimeSpeed = null;
         }
 

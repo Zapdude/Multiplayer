@@ -8,6 +8,7 @@ using System.Threading;
 using HarmonyLib;
 using Multiplayer.Client.AsyncTime;
 using Multiplayer.Client.Comp;
+using Multiplayer.Client.Compatibility;
 using Multiplayer.Client.Desyncs;
 using Multiplayer.Client.Patches;
 using Multiplayer.Client.Util;
@@ -206,6 +207,8 @@ namespace Multiplayer.Client
         public static void StopMultiplayer()
         {
             Log.Message($"Stopping multiplayer session from {new StackTrace().GetFrame(1).GetMethod().FullDescription()}");
+
+            SessionLifecycle.Stopping();
 
             OnMainThread.ClearScheduled();
             LongEventHandler.ClearQueuedEvents();

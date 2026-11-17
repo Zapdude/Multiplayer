@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Multiplayer.Client.Comp;
+using Multiplayer.Client.Compatibility;
 using Multiplayer.Client.Desyncs;
 using Multiplayer.Client.Factions;
 using Multiplayer.Client.Patches;
@@ -212,6 +213,7 @@ public class AsyncWorldTimeComp : IExposable, ITickable
 
         TickPatch.currentExecutingCmdIssuedBySelf = cmd.IsIssuedBySelf() && !TickPatch.Simulating;
         TickPatch.currentExecutingCmdType = cmdType;
+        TickPatch.currentExecutingCmdPlayerId = cmd.playerId;
 
         int randDepth = Rand.stateStack.Count;
         PreContext();
@@ -266,6 +268,10 @@ public class AsyncWorldTimeComp : IExposable, ITickable
             {
                 var playerId = data.ReadInt32();
                 var canUseDevMode = data.ReadBool();
+
+                // Ordered on every peer: compat mods forget the retired player's UI/state here
+                SessionLifecycle.PlayerRetired(playerId);
+
                 Multiplayer.GameComp.playerData[playerId] = new PlayerData { canUseDevMode = canUseDevMode };
             }
 
@@ -312,6 +318,7 @@ public class AsyncWorldTimeComp : IExposable, ITickable
             PostContext();
             TickPatch.currentExecutingCmdIssuedBySelf = false;
             TickPatch.currentExecutingCmdType = null;
+            TickPatch.currentExecutingCmdPlayerId = -1;
 
             Multiplayer.game.sync.TryAddCommandRandomState(randState);
 
