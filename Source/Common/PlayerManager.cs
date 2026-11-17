@@ -188,7 +188,7 @@ namespace Multiplayer.Common
                     return arbiter;
 
                 if (!server.IsStandaloneServer)
-                    return PlayingPlayers.FirstOrDefault(p => p.IsHost);
+                    return PlayingPlayers.FirstOrDefault(p => p.IsHost && p.status == PlayerStatus.Playing);
 
                 return PlayingPlayers
                     .Where(p => !p.IsArbiter && p.status == PlayerStatus.Playing)

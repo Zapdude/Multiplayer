@@ -33,7 +33,7 @@ public class CommandLogTest
     private (ServerPlayer player, RecordingConnection conn) AddPlayer(string username, ConnectionStateEnum state)
     {
         var conn = new RecordingConnection(username);
-        var player = new ServerPlayer(nextPlayerId++, conn) { hasJoined = true };
+        var player = new ServerPlayer(nextPlayerId++, conn) { hasJoined = true, status = PlayerStatus.Playing };
         conn.serverPlayer = player;
         conn.ChangeState(state);
         server.playerManager.Players.Add(player);

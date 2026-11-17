@@ -100,7 +100,7 @@ public class ServerTest
     {
         var conn = new RecordingConnection("host");
         conn.ChangeState(ConnectionStateEnum.ServerPlaying);
-        var host = new ServerPlayer(100, conn) { hasJoined = true };
+        var host = new ServerPlayer(100, conn) { hasJoined = true, status = PlayerStatus.Playing };
         conn.serverPlayer = host;
         server.playerManager.Players.Add(host);
         server.hostUsername = "host";

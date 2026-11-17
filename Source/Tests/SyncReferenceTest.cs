@@ -136,6 +136,33 @@ public class SyncReferenceTest
     }
 
     [Test]
+    public void HostedReferenceIsNotTheHostWhileItIsDesyncedOrRejoining()
+    {
+        var host = AddPlayer("host");
+        server.hostUsername = "host";
+        AddPlayer("other");
+        server.playerManager.UpdateSyncReference();
+        Assert.That(server.playerManager.SyncReference, Is.SameAs(host));
+
+        SendOpinion(host);
+        Assert.That(server.worldData.syncInfos, Has.Count.EqualTo(1));
+
+        server.playerManager.OnDesync(host, 0, 0);
+
+        // The desynced host can't upload a join point or be the truth other opinions are compared against
+        Assert.That(server.playerManager.SyncReference, Is.Null);
+        Assert.That(server.worldData.syncInfos, Is.Empty);
+
+        host.conn.GetState<ServerPlayingState>()!.HandleRejoin(new ByteReader([]));
+        Assert.That(server.playerManager.SyncReference, Is.Null);
+
+        // Back in the game and caught up
+        host.conn.ChangeState(ConnectionStateEnum.ServerPlaying);
+        host.conn.GetState<ServerPlayingState>()!.HandleWorldReady(new ByteReader([]));
+        Assert.That(server.playerManager.SyncReference, Is.SameAs(host));
+    }
+
+    [Test]
     public void StandaloneForwardsLargeTracesFragmented()
     {
         server.IsStandaloneServer = true;

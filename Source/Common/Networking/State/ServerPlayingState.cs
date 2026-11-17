@@ -135,14 +135,32 @@ namespace Multiplayer.Common
 
             var maps = new Dictionary<int, byte[]>();
             int mapCount = data.ReadInt32();
+            if (mapCount < 0)
+            {
+                ServerLog.Error($"Ignored world upload from {Player.Username}: invalid map count {mapCount}");
+                return;
+            }
+
             for (int i = 0; i < mapCount; i++)
             {
                 int mapId = data.ReadInt32();
-                maps[mapId] = data.ReadPrefixedBytes()!;
+                var map = data.ReadPrefixedBytes();
+                if (mapId < 0 || map is not { Length: > 0 })
+                {
+                    ServerLog.Error($"Ignored world upload from {Player.Username}: invalid map {mapId}");
+                    return;
+                }
+
+                maps[mapId] = map;
             }
 
-            var game = data.ReadPrefixedBytes()!;
-            var session = data.ReadPrefixedBytes()!;
+            var game = data.ReadPrefixedBytes();
+            var session = data.ReadPrefixedBytes();
+            if (game is not { Length: > 0 } || session == null)
+            {
+                ServerLog.Error($"Ignored world upload from {Player.Username}: missing world or session data");
+                return;
+            }
 
             // The host's initial upload when hosting, there is no command log yet
             if (Server.worldData.savedGame == null && !Server.IsStandaloneServer && Player.IsHost)

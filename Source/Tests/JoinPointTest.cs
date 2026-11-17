@@ -43,13 +43,14 @@ public class JoinPointTest
         return player;
     }
 
-    private static void Upload(ServerPlayer player, int tick, byte[] game, int mapId = 0, byte[]? map = null)
+    private static void Upload(ServerPlayer player, int tick, byte[]? game, int mapId = 0, byte[]? map = null,
+        bool nullMap = false)
     {
         var writer = new ByteWriter();
         writer.WriteInt32(tick);
         writer.WriteInt32(1);
         writer.WriteInt32(mapId);
-        writer.WritePrefixedBytes(map ?? [7]);
+        writer.WritePrefixedBytes(nullMap ? null : map ?? [7]);
         writer.WritePrefixedBytes(game);
         writer.WritePrefixedBytes([5]);
         player.conn.GetState<ServerPlayingState>()!.HandleWorldDataUpload(new ByteReader(writer.ToArray()));
@@ -135,6 +136,57 @@ public class JoinPointTest
         Assert.That(Cmds.All(c => c.ticks >= 100), Is.True);
         Assert.That(server.worldData.standaloneWorldSnapshot.tick, Is.EqualTo(100));
         Assert.That(server.worldData.standaloneWorldSnapshot.producerPlayerId, Is.EqualTo(uploader.id));
+    }
+
+    [Test]
+    public void IncompleteUploadIsRejected()
+    {
+        server.IsStandaloneServer = true;
+        var uploader = AddPlayer("uploader");
+        Assert.That(server.worldData.TryStartJoinPointCreation(true), Is.True);
+
+        var errors = new List<string>();
+        var prevError = ServerLog.error;
+        ServerLog.error = errors.Add;
+        try
+        {
+            Upload(uploader, 0, null); // no world save
+            Upload(uploader, 0, [2], nullMap: true); // no map save
+        }
+        finally
+        {
+            ServerLog.error = prevError;
+        }
+
+        Assert.That(errors, Is.Not.Empty);
+        Assert.That(server.worldData.CreatingJoinPoint, Is.True);
+        Assert.That(server.worldData.savedGame, Is.EqualTo(new byte[] { 1 }));
+    }
+
+    [Test]
+    public void TryCompleteJoinPointRejectsIncompleteData()
+    {
+        server.IsStandaloneServer = true;
+        var uploader = AddPlayer("uploader");
+        Assert.That(server.worldData.TryStartJoinPointCreation(true), Is.True);
+
+        var prevError = ServerLog.error;
+        ServerLog.error = _ => { };
+        try
+        {
+            Assert.That(server.worldData.TryCompleteJoinPoint(uploader, 0, new(), null!, [5]), Is.False);
+            Assert.That(server.worldData.TryCompleteJoinPoint(uploader, 0, new(), [1], null!), Is.False);
+            Assert.That(
+                server.worldData.TryCompleteJoinPoint(uploader, 0, new Dictionary<int, byte[]> { [0] = [] }, [1], [5]),
+                Is.False);
+        }
+        finally
+        {
+            ServerLog.error = prevError;
+        }
+
+        Assert.That(server.worldData.CreatingJoinPoint, Is.True);
+        Assert.That(server.worldData.savedGame, Is.EqualTo(new byte[] { 1 }));
     }
 
     [Test]

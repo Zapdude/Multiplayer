@@ -43,7 +43,7 @@ public class FragmentedPacketTest
     private RecordingConnection AddHost()
     {
         var conn = new RecordingConnection("host");
-        var player = new ServerPlayer(0, conn);
+        var player = new ServerPlayer(0, conn) { status = PlayerStatus.Playing };
         conn.serverPlayer = player;
         conn.ChangeState(ConnectionStateEnum.ServerPlaying);
         server.playerManager.Players.Add(player);

@@ -146,6 +146,13 @@ public class WorldData
             return false;
         }
 
+        if (uploadedMaps == null || uploadedGame is not { Length: > 0 } || uploadedSession == null ||
+            uploadedMaps.Values.Any(map => map is not { Length: > 0 }))
+        {
+            ServerLog.Error($"Rejected world upload from {player.Username}: incomplete save data");
+            return false;
+        }
+
         mapData = uploadedMaps;
         savedGame = uploadedGame;
         sessionData = uploadedSession;
