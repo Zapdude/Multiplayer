@@ -69,6 +69,8 @@ namespace Multiplayer.Client
             return result.randomStates;
         }
 
+        // Legacy desync report entry format. Networking, including the sync opinions in the world data, uses
+        // SyncOpinion.FromBytes instead.
         public byte[] Serialize()
         {
             var writer = new ByteWriter();
@@ -122,6 +124,8 @@ namespace Multiplayer.Client
             };
         }
 
+        // Legacy desync report entry format. Networking, including the sync opinions in the world data, uses
+        // SyncOpinion.FromBytes instead.
         public static ClientSyncOpinion Deserialize(ByteReader data)
         {
             var startTick = data.ReadInt32();

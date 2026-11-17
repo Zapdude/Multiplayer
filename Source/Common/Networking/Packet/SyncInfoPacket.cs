@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -70,39 +71,119 @@ public record struct SyncOpinion : IPacketBufferable
 
     public void Bind(PacketBuffer buf)
     {
+        var start = buf.isWriting ? buf.Writer.Position : 0;
+
+        if (buf.isWriting)
+        {
+            // A hand-built opinion may leave the lists null; an opinion with no entries is still valid to send
+            commandRandomStates ??= [];
+            worldRandomStates ??= [];
+            mapRandomStates ??= [];
+            traceHashValues ??= [];
+            traceHashIndices ??= [];
+        }
+
         buf.Bind(ref startTick);
 
         buf.Bind(ref commandRandomStates, BinderOf.UInt());
         buf.Bind(ref worldRandomStates, BinderOf.UInt());
         buf.Bind(ref mapRandomStates, BinderOf.Identity<MapRandomState>());
         buf.Bind(ref traceHashValues, BinderOf.Int(), maxLength: MaxTraceHashValues);
-        BindTraceHashIndices(buf);
+        BindTraceHashIndices(buf, start);
 
         buf.Bind(ref simulating);
         buf.BindEnum(ref roundMode);
+
+        // The packet's own limit would reject this after the whole opinion was written; fail here with the size
+        if (buf.isWriting && buf.Writer.Position - start > ClientSyncInfoPacket.MaxLength)
+            throw new WriterException(
+                $"Sync opinion too big ({buf.Writer.Position - start}>{ClientSyncInfoPacket.MaxLength})");
     }
 
     public const int MaxTraceHashValues = 1 << 18;
     public const int MaxUShortIndexValues = ushort.MaxValue + 1;
-    // One index per trace, so this bounds the trace count rather than the hash count. At 2 bytes per ushort index,
-    // this many still fit inside ClientSyncInfoPacket.MaxLength.
+    // Read-side sanity cap; the write path enforces ClientSyncInfoPacket.MaxLength in BindTraceHashIndices.
     public const int MaxTraceHashIndices = 1 << 22;
 
-    private void BindTraceHashIndices(PacketBuffer buf)
+    /// Reads an opinion in the wire format shared by ClientSyncInfoPacket and ServerSyncInfoPacket. The sync opinions
+    /// in the world data use this format too, not the legacy desync report format of ClientSyncOpinion.
+    public static SyncOpinion FromBytes(byte[] bytes)
     {
-        var useUShort = traceHashValues is { Count: <= MaxUShortIndexValues };
+        var opinion = default(SyncOpinion);
+        BinderOf.Identity<SyncOpinion>()(new PacketReader(new ByteReader(bytes)), ref opinion);
+        return opinion;
+    }
+
+    private void BindTraceHashIndices(PacketBuffer buf, int start)
+    {
+        bool useUShort = false;
+
+        if (buf.isWriting)
+        {
+            // Every index must address a value: a bad one would silently become a different hash on the far side
+            foreach (var index in traceHashIndices)
+                if (index < 0 || index >= traceHashValues.Count)
+                    throw new WriterException(
+                        $"Trace hash index {index} out of range for {traceHashValues.Count} values");
+
+            useUShort = IndicesFitUShort(traceHashIndices);
+        }
+
         buf.Bind(ref useUShort);
+
+        if (buf.isWriting)
+        {
+            // Leave room for the indices' length prefix, simulating and roundMode. The packet's own limit would throw
+            // a generic error after the whole list was written; fail before with the count that doesn't fit
+            var width = useUShort ? sizeof(ushort) : sizeof(int);
+            var remaining = ClientSyncInfoPacket.MaxLength - (buf.Writer.Position - start) -
+                            sizeof(int) - sizeof(bool) - sizeof(short);
+            var maxIndices = Math.Max(0, remaining / width);
+            if (traceHashIndices.Count > maxIndices)
+                throw new WriterException(
+                    $"Sync opinion too big: {traceHashIndices.Count} trace indices at {width} bytes each don't fit " +
+                    $"in {ClientSyncInfoPacket.MaxLength} bytes (max {maxIndices})");
+        }
 
         if (useUShort)
         {
-            var indices = traceHashIndices?.Select(i => (ushort)i).ToList();
-            buf.Bind(ref indices, BinderOf.UShort(), maxLength: MaxTraceHashIndices);
-            traceHashIndices = indices?.Select(i => (int)i).ToList();
+            if (buf.isWriting)
+            {
+                var indices = new List<ushort>(traceHashIndices.Count);
+                foreach (var index in traceHashIndices)
+                    indices.Add((ushort)index);
+
+                buf.Bind(ref indices, BinderOf.UShort(), maxLength: MaxTraceHashIndices);
+            }
+            else
+            {
+                var indices = new List<ushort>();
+                buf.Bind(ref indices, BinderOf.UShort(), maxLength: MaxTraceHashIndices);
+
+                traceHashIndices = new List<int>(indices.Count);
+                foreach (var index in indices)
+                    traceHashIndices.Add(index);
+            }
         }
         else
         {
             buf.Bind(ref traceHashIndices, BinderOf.Int(), maxLength: MaxTraceHashIndices);
         }
+    }
+
+    internal static bool IndicesFitUShort(List<int> indices)
+    {
+        var maxIndex = -1;
+        foreach (var index in indices)
+        {
+            if (index < 0)
+                return false;
+            if (index > maxIndex)
+                maxIndex = index;
+        }
+
+        // More than 65,536 values can still be addressed by ushort indices when the traces don't use the later ones
+        return maxIndex < MaxUShortIndexValues;
     }
 
     // First-seen order keeps the encoding deterministic, so the same traces always produce the same bytes
