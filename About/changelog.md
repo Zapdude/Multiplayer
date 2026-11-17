@@ -1,8 +1,9 @@
 # Multiplayer Bodged changelog
 
 A personal fork of [Multiplayer](https://github.com/rwmt/Multiplayer), built on
-`upstream/dev` at `ddfccdb` (0.11.5). It integrates six open upstream pull
-requests and adds one fix of its own.
+`upstream/dev` at `ddfccdb` (0.11.5). This branch adds RimWorld 1.7 support from
+PR 1000 and integrates six more upstream pull requests by hand, along with fixes
+of its own.
 
 This fork is for personal use. Reports about it should not go to the upstream
 team.
@@ -11,10 +12,21 @@ team.
 
 `upstream/dev` at `ddfccdb` — "Update .NET version to 10 (#1008)".
 
+PR 1000 (RimWorld 1.7 support) is merged on top as `0ec2cf9`. It brings the 1.7
+code paths, the CI packaging split, and the .NET 10 and Harmony 3 requirements.
+
+## RimWorld 1.7
+
+- Targets RimWorld 1.7, .NET 10 and Harmony 3. Prepatcher is not required.
+- Builds stage into `1.7/Assemblies` and `1.7/AssembliesCustom`, and
+  `LoadFolders.xml` loads the root and `1.7` folders for 1.7 only.
+- The workshop bundler still packages the frozen 1.5 and 1.6 releases alongside
+  the 1.7 build.
+
 ## Integrated pull requests
 
-All six are still open upstream at the time of writing, so none of this is in a
-released Multiplayer build.
+Six PRs were merged after PR 1000. None of them is in a released Multiplayer
+build.
 
 ### #996 — Broad desync fixes (WoodyWizard)
 
@@ -43,8 +55,9 @@ game is now disposed first.
 
 ### #1010 — Add RimRef Local for IDE source navigation (mibac138)
 
-Debug builds use locally installed 1.6.4871 assemblies; Release and CI still use
-the NuGet references. The local game version must match exactly.
+Debug builds resolve the game assemblies from a local install; Release and CI
+still use the NuGet references. The installed game version has to match the
+reference.
 
 ### #1011 — Fix ritual role assignment desyncs (Kuinox)
 
@@ -77,6 +90,43 @@ PRs touched the same code, I kept the newer design.
 strings and `writeTime`, so the test's literal left them null and the roundtrip
 threw. The test fills them in now.
 
+## Compatibility surface
+
+`Multiplayer.Client.Compatibility` provides the API other mods bind by
+reflection: `RoomSettings`, `SessionLifecycle`, `Presentation`,
+`DecisionOwnership`, `StartupSettings`, `OwnerClock`, `OwnedThingTransfer` and
+`CommandAuthority`. A mod that expects these members throws at load time when
+they are missing, so the surface is present in full.
+
+`CheckpointState` is inert in this build: `Active` and `IsWorker` are false, and
+nothing is captured or restored. Mods that gate features on it disable those
+features instead of breaking.
+
+`StartupSettings` checks the host's loaded startup values against the current
+ones before hosting, so a value that changed since load stops the host with a
+restart message. Two strings were added to `Languages/English/Keyed`.
+
+## Desync and rejoin fixes
+
+- A roster packet that arrives while a rejoining client is still loading is
+  applied instead of dropped.
+- Incidents queued for another map's clock no longer fire on the wrong map. The
+  queue is filtered to the clock being ticked, and the due tick is rebased onto
+  the target's clock when an incident is queued.
+- Vanilla's ten-jobs-per-frame guard counts job starts per simulation event, so
+  every peer trips it at the same point.
+- Local-only visual motes no longer reorder `ListerThings`.
+- Statue render data is generated under a local RNG scope with local ids.
+- Transporter-tab drops with a stale selection or count are rejected while a
+  command is executing.
+- Shared references written by the mod's own exposables are no longer reported
+  as duplicate load ids.
+- Region and room rebuilds triggered from the interface wait for the next tick.
+- `PathFinder.ForceCompleteScheduledJobs` completes job handles from a span
+  instead of allocating a native array.
+- A rejoining client no longer logs an inconsistent-map error on its first
+  report.
+
 ## My fixes
 
 ### Sync opinion trace-hash compression
@@ -101,20 +151,29 @@ into it, instead of a flat list.
 
 In my testing it halved payload size on average with large modlists.
 
+### Sync opinion encoding on the join path
+
+Forwarded sync opinions in the world data were read with the report format, so a
+join while the server held a stored opinion shifted the stream and disconnected
+the joiner. They are read with `SyncOpinion` now, and the index width follows the
+largest index. Out-of-range indices are rejected instead of cast, and null lists
+serialize as empty. Opinions produced by `CompressTraceHashes` keep their
+encoding, so the protocol is unchanged.
+
 ### Protocol
 
-`MpVersion.Protocol` is bumped from 57 to 58. This fork can't connect to stock
-0.11.5 clients, and stock clients can't connect to it.
+`MpVersion.Protocol` is 58. This fork can't connect to stock 0.11.5 clients, and
+stock clients can't connect to it.
 
 ### Tests
 
 `Source/Tests/SyncOpinionCompressionTest.cs` covers the compression, including
 `LargeTraceCountSerializes`, which checks that a list of 2,532,642 traces with
-1,000 distinct values round-trips correctly. The full suite passes.
+1,000 distinct values round-trips correctly. 318 tests pass.
 
 ## Fork housekeeping
 
-- Renamed to **Multiplayer Bodged** with package ID `zap.MultiplayerBodged`, and
+- Renamed to **Multiplayer Bodged** with package ID `zap.multiplayerbodged`, and
   declared incompatible with `rwmt.Multiplayer` so the Workshop version can't
   load alongside it.
 - `SyncConfigs.ignoredConfigsModIds` updated to the new package ID. Both the
