@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - dev
+      - personal/dev-integration
     paths-ignore:
       - 'README.md'
 
