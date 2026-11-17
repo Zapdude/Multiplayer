@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -136,7 +137,7 @@ public class StorytellerTargetsPatch
     }
 
     // A pocket map (e.g. an undercave) belongs to the owner of the map it was opened from
-    static Faction OwnerFaction(Map map)
+    internal static Faction OwnerFaction(Map map)
     {
         var owningMap = map;
         for (int i = 0; i < 8 && owningMap.IsPocketMap && owningMap.PocketMapParent?.sourceMap is { } source; i++)
@@ -190,8 +191,30 @@ static class WorldTickMapContext
 
         prev?.AsyncTime().PostContext();
         AsyncTimeComp.tickingMap = map;
-        map.AsyncTime().PreContext();
         state = (map, prev);
+
+        try
+        {
+            map.AsyncTime().PreContext();
+        }
+        catch
+        {
+            // Don't leave the world tick with no context open. Restore the enclosing one and let Exit do nothing for
+            // this failed entry.
+            state = default;
+            AsyncTimeComp.tickingMap = prev;
+
+            try
+            {
+                prev?.AsyncTime().PreContext();
+            }
+            catch (Exception restore)
+            {
+                Log.Error($"Multiplayer: couldn't restore the map context after {map}: {restore}");
+            }
+
+            throw;
+        }
     }
 
     public static void Exit((Map map, Map prev) state)

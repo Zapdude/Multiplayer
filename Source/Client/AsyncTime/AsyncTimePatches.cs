@@ -173,7 +173,7 @@ namespace Multiplayer.Client.AsyncTime
         static void Postfix(Map __instance, ref bool __result)
         {
             if (__result && DateNotifierPatch.factionPass is { } faction &&
-                __instance.ParentFaction is { IsPlayer: true } owner && owner != faction)
+                StorytellerTargetsPatch.OwnerFaction(__instance) is { IsPlayer: true } owner && owner != faction)
                 __result = false;
         }
     }
