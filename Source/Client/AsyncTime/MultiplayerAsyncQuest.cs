@@ -131,24 +131,68 @@ namespace Multiplayer.Client.Comp
         private static readonly Dictionary<AsyncTimeComp, List<Quest>> mapQuestsCache = new Dictionary<AsyncTimeComp, List<Quest>>();
         private static readonly List<Quest> worldQuestsCache = new List<Quest>();
 
-        //List of quest parts that have mapParent as field
-        private static readonly List<Type> questPartsToCheck = new List<Type>()
+        // Quest parts that point at a MapParent, discovered from all loaded assemblies so modded and DLC parts
+        // are handled without maintaining a hardcoded list.
+        private static readonly HashSet<Type> questPartsToCheck = DiscoverQuestParts();
+
+        private const BindingFlags MapParentFlags =
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+        private static HashSet<Type> DiscoverQuestParts()
         {
-            typeof(QuestPart_DropPods),
-            typeof(QuestPart_SpawnThing),
-            typeof(QuestPart_PawnsArrive),
-            typeof(QuestPart_Incident),
-            typeof(QuestPart_RandomRaid),
-            typeof(QuestPart_ThreatsGenerator),
-            typeof(QuestPart_Infestation),
-            typeof(QuestPart_GameCondition),
-            typeof(QuestPart_JoinPlayer),
-            typeof(QuestPart_TrackWhenExitMentalState),
-            typeof(QuestPart_RequirementsToAcceptBedroom),
-            typeof(QuestPart_MechCluster),
-            typeof(QuestPart_DropMonumentMarkerCopy),
-            typeof(QuestPart_PawnsAvailable)
-        };
+            try
+            {
+                return new HashSet<Type>(
+                    GenTypes.AllSubclasses(typeof(QuestPart))
+                        .Where(t => t != null && !t.IsAbstract)
+                        .Where(t => t.Name.StartsWith("QuestPart_", StringComparison.Ordinal))
+                        .Where(HasMapParent));
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Multiplayer: failed to discover quest parts with mapParent, scanning the base assembly instead: {e}");
+                return DiscoverQuestPartsFromBaseAssembly();
+            }
+        }
+
+        private static HashSet<Type> DiscoverQuestPartsFromBaseAssembly()
+        {
+            try
+            {
+                return new HashSet<Type>(
+                    typeof(QuestPart).Assembly.GetTypes()
+                        .Where(t => t != null && !t.IsAbstract)
+                        .Where(t => t.Name.StartsWith("QuestPart_", StringComparison.Ordinal))
+                        .Where(HasMapParent));
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Multiplayer: failed to discover quest parts in the base assembly: {e}");
+                return new HashSet<Type>();
+            }
+        }
+
+        private static bool HasMapParent(Type type) =>
+            type.GetMember("mapParent", MemberTypes.Field | MemberTypes.Property, MapParentFlags).Length > 0;
+
+        private static MapParent GetMapParent(QuestPart part)
+        {
+            foreach (var member in part.GetType().GetMember("mapParent",
+                         MemberTypes.Field | MemberTypes.Property, MapParentFlags))
+            {
+                var value = member switch
+                {
+                    FieldInfo field => field.GetValue(part),
+                    PropertyInfo property => property.GetValue(part),
+                    _ => null
+                };
+
+                if (value is MapParent mapParent)
+                    return mapParent;
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Tries to remove Map from cache, then moves all Quests cached to that map to WorldQuestsCache
@@ -274,7 +318,7 @@ namespace Multiplayer.Client.Comp
             //Really terrible way to determine if any quest parts have a map which also has an async time
             foreach (var part in quest.parts.Where(x => x != null && questPartsToCheck.Contains(x.GetType())))
             {
-                if (part.GetType().GetField("mapParent")?.GetValue(part) is MapParent { Map: not null } mapParent)
+                if (GetMapParent(part) is { Map: not null } mapParent)
                 {
                     var mapAsyncTimeComp = mapParent.Map.IsPlayerHome ? mapParent.Map.AsyncTime() : null;
                     if (mapAsyncTimeComp != null) return mapAsyncTimeComp;
