@@ -19,11 +19,9 @@ namespace Multiplayer.Client.Patches
     [HarmonyPatch(typeof(GravshipUtility), nameof(GravshipUtility.PreLaunchConfirmation))]
     public static class PatchGravshipPreLaunchConfirmation
     {
-        static void Prefix(Building_GravEngine engine, ref Action launchAction)
+        static bool Prefix(Building_GravEngine engine, ref Action launchAction)
         {
-            if (Multiplayer.Client == null) return;
-
-            GravshipTravelUtils.OpenSessionAt(engine.Map.Tile);
+            return GravshipUiOwnership.Prelaunch(engine, launchAction);
         }
     }
 
@@ -40,6 +38,9 @@ namespace Multiplayer.Client.Patches
             if (Multiplayer.Client == null) return;
             if (!Multiplayer.ExecutingCmds) return;
 
+            if (GravshipTravelUtils.TryGetSessionAt(Find.CurrentMap.Tile, out var session))
+                GravshipUiOwnership.Forget(GravshipUiOwnership.SessionEngine(session));
+
             GravshipTravelUtils.CloseSessionAt(Find.CurrentMap.Tile);
             GravshipTravelUtils.CloseGravshipPrelaunchDialog();
         }
@@ -48,13 +49,14 @@ namespace Multiplayer.Client.Patches
     [HarmonyPatch(typeof(CompPilotConsole), nameof(CompPilotConsole.StartChoosingDestination_NewTemp))]
     public static class PatchPilotConsoleStartChoosingDestination
     {
+        static bool Prefix(CompPilotConsole __instance, bool launching)
+        {
+            return GravshipUiOwnership.Route(__instance, launching);
+        }
+
         static void Postfix(CompPilotConsole __instance, bool launching)
         {
-            if (Multiplayer.Client == null) return;
-            if (!launching) return;
-
-            GravshipTravelUtils.CloseGravshipPrelaunchDialog();
-            GravshipTravelUtils.OpenSessionAt(__instance.engine.Map.Tile);
+            GravshipUiOwnership.TrackRoute(__instance, launching);
         }
     }
 
@@ -85,6 +87,10 @@ namespace Multiplayer.Client.Patches
 
             Find.World.renderer.wantedMode = WorldRenderMode.None;
             Find.TilePicker.StopTargetingInt();
+
+            if (GravshipTravelUtils.TryGetSessionAt(___curTile, out var session))
+                GravshipUiOwnership.Forget(GravshipUiOwnership.SessionEngine(session));
+
             GravshipTravelUtils.CloseSessionAt(___curTile);
         }
     }
@@ -352,6 +358,9 @@ namespace Multiplayer.Client.Patches
         private static MultiplayerSession frozenSession; // The connection the freeze was sent on
 
         public static bool EndRequested => endRequested && pending != Cutscene.None;
+
+        public static bool HasPendingLanding => IsPending(false);
+        public static bool HasPendingTakeoff => IsPending(true);
 
         public static void ExposeData()
         {

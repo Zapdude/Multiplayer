@@ -13,6 +13,11 @@ public class GravshipTravelSession : Session
     public override Map Map => map;
     public PlanetTile InitialTile;
 
+    // Set by the 1.7 UI ownership layer: the session covers a pending landing confirmation on
+    // this map, for the gravship engine with this thingIDNumber.
+    public bool LandingConfirmation;
+    public int EngineId;
+
     private Map map;
 
     public GravshipTravelSession(Map map) : base(map)
@@ -37,18 +42,37 @@ public class GravshipTravelSession : Session
 
 public static class GravshipTravelUtils
 {
-    public static void OpenSessionAt(PlanetTile tile)
+    public static void OpenSessionAt(PlanetTile tile, bool landingConfirmation = false, Building_GravEngine engine = null)
     {
         // E.g. ArriveExistingMap without a map at the tile (vanilla logs an error and returns)
         Map map = Find.WorldObjects.MapParentAt(tile)?.Map;
         if (map == null)
             return;
 
-        if (HasSessionAt(map.Tile))
-            return;
+        if (TryGetSessionAt(map.Tile, out GravshipTravelSession session))
+        {
+            session.LandingConfirmation |= landingConfirmation;
+            if (engine != null)
+                session.EngineId = engine.thingIDNumber;
 
-        GravshipTravelSession session = new GravshipTravelSession(map);
-        map.MpComp()?.sessionManager?.AddSession(session);
+            return;
+        }
+
+        GravshipTravelSession newSession = new GravshipTravelSession(map)
+        {
+            LandingConfirmation = landingConfirmation,
+            EngineId = engine?.thingIDNumber ?? 0
+        };
+        map.MpComp()?.sessionManager?.AddSession(newSession);
+    }
+
+    public static Map LandingMap(WorldComponent_GravshipController controller)
+    {
+        GravshipLandingMarker marker = controller?.landingMarker;
+        if (marker == null || marker.Destroyed || marker.gravship == null)
+            return null;
+
+        return marker.Map ?? controller.landingMap;
     }
 
     public static void CloseSessionAt(PlanetTile tile)

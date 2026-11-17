@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using Multiplayer.API;
+using Multiplayer.Client.Persistent;
 using Multiplayer.Client.Saving;
 using Multiplayer.Common;
 using Verse;
@@ -19,6 +21,11 @@ namespace Multiplayer.Client.Comp
         public Dictionary<int, PlayerData> playerData = new(); // player id to player data
         public int nextSessionId;
 
+        // Gravship UI ownership and pending map decisions. Ported from the 1.7 Multiplayer build
+        // (workshop 3820003322) so Multiplayer Compatibility's VGE module can drive them.
+        public Dictionary<int, int> gravshipUiOwners = new(); // gravship engine thingIDNumber -> player id
+        public List<GravshipMapDecision> gravshipMapDecisions = new();
+
         public string idBlockBase64;
 
         public bool IsLowestWins => timeControl == TimeControl.LowestWins;
@@ -34,6 +41,10 @@ namespace Multiplayer.Client.Comp
             Scribe_Values.Look(ref pauseOnLetter, "pauseOnLetter");
             Scribe_Values.Look(ref timeControl, "timeControl");
             Scribe_Values.Look(ref nextSessionId, "nextSessionId");
+            Scribe_Collections.Look(ref gravshipUiOwners, "gravshipUiOwners", LookMode.Value, LookMode.Value);
+            if (gravshipUiOwners == null) gravshipUiOwners = new Dictionary<int, int>();
+            Scribe_Collections.Look(ref gravshipMapDecisions, "gravshipMapDecisions", LookMode.Deep, Array.Empty<object>());
+            if (gravshipMapDecisions == null) gravshipMapDecisions = new List<GravshipMapDecision>();
 
             // Store for back-compat conversion in GameExposeComponentsPatch
             if (Scribe.mode == LoadSaveMode.LoadingVars)

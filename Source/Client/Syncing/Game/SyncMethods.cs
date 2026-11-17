@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Multiplayer.API;
+using Multiplayer.Client.Persistent;
 using Multiplayer.Client.Util;
 using RimWorld;
 using RimWorld.Planet;
@@ -471,6 +472,10 @@ namespace Multiplayer.Client
             // Not PlaceGravship: it runs in a long event on every client (see PatchPlaceGravshipInMapContext), where it
             // never synced, and as a command it couldn't be read anyway (the gravship isn't a world object then)
             SyncMethod.Register(typeof(WorldComponent_GravshipController), nameof(WorldComponent_GravshipController.AbortLanding)).SetContext(SyncContext.CurrentMap);
+
+            // Gravship UI ownership and map decisions, used by Multiplayer Compatibility's VGE module
+            GravshipUiOwnership.RegisterSync();
+            GravshipMapDecisions.RegisterSync();
 
             // Outfit stand
             SyncMethod.Lambda(typeof(Building_OutfitStand), nameof(Building_OutfitStand.GetGizmos), 1); // Order a pawn to equip from a stand
