@@ -61,8 +61,6 @@ namespace Multiplayer.Common
             if (!IsValidClientCommand(packet.type, packet.mapId))
                 throw new PacketReadException($"Invalid client command {packet.type} for map {packet.mapId}");
 
-            int? mapToResync = null;
-
             if (packet.type == CommandType.PlayerCount)
             {
                 ByteReader reader = new ByteReader(packet.data);
@@ -73,18 +71,12 @@ namespace Multiplayer.Common
                                     $"however received command with transition: {prevMapId} -> {newMapId}");
                 Player.currentMapId = newMapId;
                 Player.hasReportedCurrentMap = true;
-
-                if (Server.CanUseStandaloneMapStreaming(newMapId))
-                    mapToResync = newMapId;
             }
 
             // todo check if map id is valid for the player (the server doesn't know maps created since the last
             //  join point)
 
             Server.commands.Send(packet.type, Player.FactionId, packet.mapId, packet.data, Player);
-
-            if (mapToResync is int currentMapId)
-                Server.SendMapResponse(Player, currentMapId);
         }
 
         /// Only the command types and scopes the client sends. PauseAll, CreateJoinPoint and InitPlayerData are

@@ -116,33 +116,4 @@ namespace Multiplayer.Client.Patches
             lastMovedToMapId = InvalidMapId;
         }
     }
-
-    [HarmonyPatch(typeof(WorldRendererUtility), nameof(WorldRendererUtility.CurrentWorldRenderMode), MethodType.Getter)]
-    static class WorldRenderModePatch
-    {
-        private static WorldRenderMode lastRenderMode = WorldRenderMode.None;
-
-        static void Postfix(WorldRenderMode __result)
-        {
-            if (Multiplayer.Client == null) return;
-
-            try
-            {
-                // Detect transition to world map (Planet mode). Viewer counts are updated by VTRSync.UpdateView.
-                if (__result == WorldRenderMode.Planet && lastRenderMode != WorldRenderMode.Planet)
-                {
-                    // On standalone with streaming, trigger a join point when leaving a map
-                    // so each player can save independently without disturbing others
-                    if (Multiplayer.session?.ConnectedToStandaloneServer == true && Multiplayer.GameComp.multifaction && Multiplayer.GameComp.asyncTime)
-                        Autosaving.SendAutosavingRequest(JoinPointRequestReason.WorldTravel, TickPatch.Timer);
-                }
-
-                lastRenderMode = __result;
-            }
-            catch (Exception ex)
-            {
-                MpLog.Error($"WorldRenderModePatch error: {ex.Message}");
-            }
-        }
-    }
 }

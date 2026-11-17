@@ -287,27 +287,6 @@ namespace Multiplayer.Common
                     player.conn.Send(serialized, reliable);
         }
 
-        public bool CanUseStandaloneMapStreaming(int mapId) => false;
-
-        public void SendMapResponse(ServerPlayer player, int mapId)
-        {
-            if (!CanUseStandaloneMapStreaming(mapId))
-                return;
-
-            ByteWriter writer = new ByteWriter();
-            writer.WriteInt32(mapId);
-
-            var mapCmds = worldData.cmds
-                .Where(cmd => ScheduledCommand.Deserialize(new ByteReader(cmd)).mapId == mapId)
-                .ToList();
-            writer.WriteInt32(mapCmds.Count);
-            foreach (var cmd in mapCmds)
-                writer.WritePrefixedBytes(cmd);
-
-            writer.WritePrefixedBytes(worldData.mapData[mapId]);
-            player.conn.SendFragmented(Packets.Server_MapResponse, writer.ToArray());
-        }
-
         public ServerPlayer? GetPlayer(string username)
         {
             return playerManager.GetPlayer(username);

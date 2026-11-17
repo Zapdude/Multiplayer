@@ -49,6 +49,7 @@ public enum Packets : byte
 
     // Playing
     Server_Command,
+    // Reserved: map streaming was removed. Keep the id so the packets after it don't shift.
     Server_MapResponse,
     Server_Notification,
     Server_TimeControl,

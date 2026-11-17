@@ -32,6 +32,7 @@ static class TrackLaunchTargeting
     {
         launchable = null;
         targeterAction = null;
+        startedSpawned = false;
     }
 }
 
@@ -47,6 +48,13 @@ static class StopLaunchTargetingWhenGone
 
     static void Prefix(WorldTargeter __instance)
     {
+        // Targeting can't start outside a multiplayer session; drop a reference from a previous one
+        if (Multiplayer.Client == null)
+        {
+            TrackLaunchTargeting.Clear();
+            return;
+        }
+
         var launchable = TrackLaunchTargeting.launchable;
         if (launchable == null) return;
 

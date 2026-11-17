@@ -135,27 +135,6 @@ namespace Multiplayer.Client
         [TypedPacketHandler]
         public void HandlePing(ServerPingLocPacket packet) => Session.locationPings.ReceivePing(packet);
 
-        [PacketHandler(Packets.Server_MapResponse, allowFragmented: true)]
-        public void HandleMapResponse(ByteReader data)
-        {
-            int mapId = data.ReadInt32();
-
-            // Map streaming is disabled (MultiplayerServer.CanUseStandaloneMapStreaming). Streamed map cmds can't be
-            // placed in the global command order, so they are skipped here.
-            int mapCmdsLen = data.ReadInt32();
-            for (int j = 0; j < mapCmdsLen; j++)
-                data.ReadPrefixedBytes();
-
-            byte[] mapData = GZipStream.UncompressBuffer(data.ReadPrefixedBytes());
-            Session.dataSnapshot.MapData[mapId] = mapData;
-
-            OnMainThread.Enqueue(() =>
-            {
-                var mapsToLoad = Find.Maps.Select(m => m.uniqueID).Append(mapId).Distinct().ToList();
-                Loader.ReloadGame(mapsToLoad, false, Multiplayer.game?.gameComp.asyncTime ?? false);
-            });
-        }
-
         [TypedPacketHandler]
         public void HandleNotification(ServerNotificationPacket packet)
         {
