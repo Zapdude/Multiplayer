@@ -24,7 +24,11 @@ namespace Multiplayer.Client
         }
 
         [TypedPacketHandler]
-        public void HandlePlayerList(ServerPlayerListPacket packet)
+        public void HandlePlayerList(ServerPlayerListPacket packet) => ApplyPlayerList(packet);
+
+        // Applies a roster packet. Shared with ClientLoadingState: the server sends the roster right after the
+        // world data, which on a rejoin arrives while the client is still loading.
+        internal static void ApplyPlayerList(ServerPlayerListPacket packet)
         {
             if (packet.action == PlayerListAction.Add)
             {
