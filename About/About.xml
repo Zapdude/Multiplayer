@@ -17,6 +17,7 @@ It integrates PRs 996, 998, 1004, 1009, 1010, 1011 onto dev. Full list of change
 
 I will not link to MP's Discord/FAQ because any reports due to using this fork shouldn't go to them. Should be obvious but this fork wouldn't exist without years of hard work from 60+ contributors. It is temporary and for personal use.
   </description>
+  <!-- 1.6-only: Prepatcher dependency (and its loadAfter entry). Discard when merging into 1.7; 1.7 depends on Harmony 3. -->
   <modDependencies>
     <li>
       <packageId>zetrith.prepatcher</packageId>
