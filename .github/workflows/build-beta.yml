@@ -1,5 +1,8 @@
 name: Build beta
 
+permissions:
+  contents: write
+
 env:
   SLN_PATH: Source/
 
