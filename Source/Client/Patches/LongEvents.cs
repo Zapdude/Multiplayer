@@ -225,12 +225,17 @@ namespace Multiplayer.Client.Patches
                 {
                     FactionContext.Pop();
 
-                    // Long events run in the interface context, where Faction.OfPlayer is the real faction. Restore
-                    // that instead of the popped faction as the event may have changed it (FactionCreator).
-                    if (Multiplayer.RealPlayerFaction is { } real)
+                    // A nested event runs in the enclosing event's interface, not the local player's. Long events run
+                    // in the interface context, where Faction.OfPlayer is the real faction (which the event may have
+                    // changed, e.g. FactionCreator), so only the outermost one restores that.
+                    var restore = prev is { faction: { } previousFaction } && prev.game == Multiplayer.game
+                        ? previousFaction
+                        : Multiplayer.RealPlayerFaction;
+
+                    if (restore is { } f)
                     {
-                        FactionContext.Set(real);
-                        SetFactionData(real);
+                        FactionContext.Set(f);
+                        SetFactionData(f);
                     }
                 }
             }
