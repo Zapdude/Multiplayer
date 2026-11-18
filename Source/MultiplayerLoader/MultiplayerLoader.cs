@@ -19,6 +19,7 @@ namespace MultiplayerLoader
             instance = this;
             LoadAssembliesCustom();
 
+            // The client assembly is loaded by this loader, not referenced.
             FindTypeInAppDomain("Multiplayer.Client.Multiplayer")!.GetMethod("InitMultiplayer")!.Invoke(null, [content]);
         }
 

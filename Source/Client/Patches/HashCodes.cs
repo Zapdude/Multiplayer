@@ -125,6 +125,7 @@ namespace Multiplayer.Client.Patches
             Type[] intTypes = Enumerable.Repeat(typeof(int), numOfInts).ToArray();
 
             // Look for a pre-compiled int,int,… overload (only exists on some runtimes)
+            // HashCodeType is resolved at runtime (Mono vs CoreCLR), so there is no nameof target.
             MethodInfo method = HashCodeType.GetMethod("Combine", BindingFlags.Public | BindingFlags.Static, binder: null, types: intTypes, modifiers: null);
             if (method != null)
                 return method;   // good – no generics involved

@@ -153,6 +153,7 @@ static class HugsLib_OverrideConfigsPatch
         SyncConfigs.GetConfigPath(SyncConfigs.HugsLibId, SyncConfigs.HugsLibSettingsFile);
     public static bool HugsLibConfigIsOverriden => File.Exists(HugsLibConfigOverridePath);
 
+    // HugsLib is an external mod, not referenced at compile time.
     private static readonly MethodInfo MethodToPatch =
         AccessTools.Method("HugsLib.Core.PersistentDataManager:GetSettingsFilePath");
 

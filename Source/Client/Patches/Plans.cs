@@ -20,6 +20,7 @@ namespace Multiplayer.Client.Patches
             // The color option's action, <>c__DisplayClass45_0.<GetGizmos>b__1 in 1.6
             var lambda = MpMethodUtil.GetLambda(typeof(Plan), nameof(Plan.GetGizmos), lambdaOrdinal: 1);
 
+            // Compiler-generated lambda field names, so no nameof target exists.
             planField = AccessTools.Field(lambda.DeclaringType, "<>4__this");
             colorField = AccessTools.Field(lambda.DeclaringType, "newCol");
             if (planField == null || colorField == null)
@@ -43,7 +44,7 @@ namespace Multiplayer.Client.Patches
         public static void SyncSetPlanColor(Plan plan, ColorDef color)
         {
             plan.Color = color;
-            AccessTools.Method(typeof(Plan), "CheckContiguous").Invoke(plan, null);
+            AccessTools.Method(typeof(Plan), nameof(Plan.CheckContiguous)).Invoke(plan, null);
         }
     }
 }

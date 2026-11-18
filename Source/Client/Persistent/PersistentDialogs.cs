@@ -226,10 +226,10 @@ namespace Multiplayer.Client
 
         public abstract void ExposeData();
 
-        protected static MethodInfo ScribeValues = typeof(Scribe_Values).GetMethod("Look");
-        protected static MethodInfo ScribeDefs = typeof(Scribe_Defs).GetMethod("Look");
-        protected static MethodInfo ScribeReferences = typeof(Scribe_References).GetMethods().First(m => m.Name == "Look" && (m.GetParameters()[0].ParameterType.GetElementType()?.IsGenericParameter ?? false));
-        protected static MethodInfo ScribeDeep = typeof(Scribe_Deep).GetMethods().First(m => m.Name == "Look" && m.GetParameters().Length == 3);
+        protected static MethodInfo ScribeValues = typeof(Scribe_Values).GetMethod(nameof(Scribe_Values.Look));
+        protected static MethodInfo ScribeDefs = typeof(Scribe_Defs).GetMethod(nameof(Scribe_Defs.Look));
+        protected static MethodInfo ScribeReferences = typeof(Scribe_References).GetMethods().First(m => m.Name == nameof(Scribe_References.Look) && (m.GetParameters()[0].ParameterType.GetElementType()?.IsGenericParameter ?? false));
+        protected static MethodInfo ScribeDeep = typeof(Scribe_Deep).GetMethods().First(m => m.Name == nameof(Scribe_Deep.Look) && m.GetParameters().Length == 3);
     }
 
     public abstract class PersistentDialog<T> : PersistentDialog where T : Dialog_NodeTree

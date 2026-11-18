@@ -263,6 +263,7 @@ namespace Multiplayer.Client.Util
             {
                 te.scrollOffset = scrollOffset;
                 te.text = new string(PassChar, password.Length);
+                // Unity internal field, not exposed at compile time.
                 AccessTools.Field(typeof(TextEditor), "m_RevealCursor").SetValue(te, true);
                 te.UpdateScrollOffsetIfNeeded(new Event());
             }

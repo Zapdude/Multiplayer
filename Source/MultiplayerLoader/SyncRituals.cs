@@ -32,6 +32,7 @@ public static class SyncRituals
         return true;
     }
 
+    // The method is in the mod assembly loaded by this loader, so there is no compile-time type here.
     private static MethodInfo syncMethod = AccessTools.Method("Multiplayer.Client.Sync:Method");
 
     /// <summary>

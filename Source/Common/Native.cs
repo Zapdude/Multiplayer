@@ -53,6 +53,7 @@ namespace Multiplayer.Client
             const BindingFlags all = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public |
                                      BindingFlags.NonPublic;
 
+            // Private runtime field names, not exposed at compile time.
             var internalThreadField = typeof(Thread).GetField("internal_thread", all);
             var threadInfoField = internalThreadField.FieldType.GetField("runtime_thread_info", all);
             var threadInfoPtr = (long)(IntPtr)threadInfoField.GetValue(internalThreadField.GetValue(Thread.CurrentThread));

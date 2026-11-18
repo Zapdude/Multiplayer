@@ -33,7 +33,7 @@ namespace Multiplayer.Client
         {
             return (Def)methodCache.GetOrAdd(
                 hashableType[defType],
-                static t => typeof(DefDatabase<>).MakeGenericType(t).GetMethod("GetByShortHash")
+                static t => typeof(DefDatabase<>).MakeGenericType(t).GetMethod(nameof(DefDatabase<Def>.GetByShortHash))
             ).Invoke(null, new[] { (object)hash });
         }
     }
