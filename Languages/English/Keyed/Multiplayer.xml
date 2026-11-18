@@ -282,6 +282,7 @@
   <MpFixAndRestart>Fix and restart</MpFixAndRestart>
   <MpMismatchQuit>Quit</MpMismatchQuit>
   <MpMismatchDefsDiff>Mod data definitions differ. They need to match before joining.</MpMismatchDefsDiff>
+  <MpMismatchLanguageDiff>Game languages differ: the host uses {0}, you use {1}. Multiplayer needs the same language because generated names and text can differ. Change your language and restart RimWorld before joining.</MpMismatchLanguageDiff>
   <MpRestartNeeded>The game needs to be restarted for mod list, file and config changes to take effect.</MpRestartNeeded>
   <MpApplyConfigs>Apply server's configs</MpApplyConfigs>
   <MpApplyConfigsTip>The application of configs is temporary and lasts until the next game restart. None of your files will be overriden.</MpApplyConfigsTip>
