@@ -23,7 +23,7 @@ jobs:
         global-json-file: global.json
       
     - name: Run workshop bundler
-      run: ./workshop_bundler.sh
+      run: bash workshop_bundler.sh
 
     - run: mkdir -p output
 
