@@ -540,6 +540,7 @@ namespace Multiplayer.Client
             return TargetMethod() != null;
         }
 
+        // External mod types, not referenced at compile time.
         static MethodInfo TargetMethod() => AccessTools.Method("ModManager.Page_BetterModConfig:DoWindowContents");
 
         static void Prefix(Window __instance, ref Rect canvas)

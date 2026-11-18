@@ -34,9 +34,8 @@ namespace Multiplayer.Client.Patches
         // completes at start of MapPreTick(N+1). During MapTick(N) it runs concurrently on a
         // worker thread and reads live pawn.Position while the main thread writes
         // pawn.Position = nextCell in Pawn_PathFollower.PatherTick(). Host and client see
-        // different enemy positions depending on thread scheduling → different blocked cells →
-        // different A* path → different nextCell for the pathing pawn → WillCollideNextCell
-        // differs → one client enters the attack branch → ChooseMeleeVerb → Rand.Chance → desync.
+        // different enemy positions depending on thread scheduling 竊・different blocked cells 竊・        // different A* path 竊・different nextCell for the pathing pawn 竊・WillCollideNextCell
+        // differs 竊・one client enters the attack branch 竊・ChooseMeleeVerb 竊・Rand.Chance 竊・desync.
         //
         // Fix: snapshot all cached pawn positions on the main thread right after
         // ScheduleBatchedPathJobs (still inside MapPreTick, before any pawn ticking).
@@ -77,11 +76,11 @@ namespace Multiplayer.Client.Patches
                 snapshotDict.TryGetValue(pawn, out snapshot);
         }
 
-        [HarmonyPatch(typeof(PathFinder), "ScheduleBatchedPathJobs")]
+        [HarmonyPatch(typeof(PathFinder), nameof(PathFinder.ScheduleBatchedPathJobs))]
         static class ScheduleBatchedPathJobsSnapshotPositions
         {
             static readonly FieldInfo CachedPawns =
-                AccessTools.Field(typeof(PathFinder), "cachedPawns");
+                AccessTools.Field(typeof(PathFinder), nameof(PathFinder.cachedPawns));
 
             static void Prefix(PathFinder __instance)
             {
@@ -100,8 +99,8 @@ namespace Multiplayer.Client.Patches
 
             static IEnumerable<MethodBase> TargetMethods()
             {
-                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), "Execute");
-                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), "CanBlockEver");
+                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), nameof(PathGridDoorsBlockedJob.Execute));
+                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), nameof(PathGridDoorsBlockedJob.CanBlockEver));
             }
 
             static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> insts)
@@ -138,7 +137,7 @@ namespace Multiplayer.Client.Patches
                 AccessTools.Method(typeof(PathGridDoorsBlockedJobCollideWithNonHostilePatch), nameof(GetCollideWithNonHostile));
             static IEnumerable<MethodBase> TargetMethods()
             {
-                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), "Execute");
+                yield return AccessTools.Method(typeof(PathGridDoorsBlockedJob), nameof(PathGridDoorsBlockedJob.Execute));
             }
             // start
             // calls to ShouldCollideWithPawns, replace with cached one

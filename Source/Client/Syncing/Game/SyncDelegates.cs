@@ -645,6 +645,7 @@ namespace Multiplayer.Client
                 if (prevCode == OpCodes.Ret)
                 {
                     // After encountering the first return - insert our method and return early, ignoring the original code we don't care for
+                    // The field is declared on the concrete job/driver type, not on a known base, so no nameof target.
                     var pawnField = AccessTools.Field(original.DeclaringType, "pawn");
                     var embryoField = AccessTools.Field(original.DeclaringType, SyncDelegate.DelegateThis);
                     var ourMethod = AccessTools.Method(typeof(SyncDelegates), nameof(SyncedCreateImplantEmbryoBill));
