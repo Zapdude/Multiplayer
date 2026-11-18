@@ -99,6 +99,7 @@ namespace Multiplayer.Client
             var missingDefs = packet.missingDefs;
 
             var remoteInfo = RemoteData.FromNet(packet);
+            var languageDiff = !JoinData.LanguageMatches(remoteInfo.remoteLanguage);
             // Captured before Complete runs: StopMultiplayerAndClearAllWindows nulls the session
             var connector = Multiplayer.session.connector;
 
@@ -125,9 +126,17 @@ namespace Multiplayer.Client
                     .Take(10)
                     .Join(s => s, "\n");
 
+                string blockedReason = null;
+                if (defDiff)
+                    blockedReason = "MpMismatchDefsDiff".Translate() + defDiffStr;
+                else if (languageDiff)
+                    blockedReason = "MpMismatchLanguageDiff".Translate(
+                        remoteInfo.remoteLanguage.NullOrEmpty() ? "?" : remoteInfo.remoteLanguage,
+                        JoinData.LocalLanguage).ToString();
+
                 Find.WindowStack.Add(new JoinDataWindow(remoteInfo, connector)
                 {
-                    connectAnywayDisabled = defDiff ? "MpMismatchDefsDiff".Translate() + defDiffStr : null,
+                    connectAnywayDisabled = blockedReason,
                     connectAnywayCallback = StartDownloading
                 });
 
