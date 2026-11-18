@@ -23,7 +23,6 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         RELEASE_TAG: continuous-1.6
         RELEASE_TITLE: Continuous-1.6
-        VERSIONED_SUFFIX: bodged
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -84,18 +83,3 @@ jobs:
         gh release create --target "${{ github.sha }}" --title "$RELEASE_TITLE" --notes-file ".github/workflows/alpha-notes.md" --draft "$RELEASE_TAG"
         gh release upload "$RELEASE_TAG" Multiplayer-beta.zip Server-beta.zip
         gh release edit "$RELEASE_TAG" --draft=false
-
-    # Versioned releases are dated and keyed on SimpleVersion, so bumping that constant is what
-    # moves them. Repeated runs on the same day replace that day's assets instead of adding releases.
-    - name: Publish versioned release
-      run: |
-        VERSION=$(grep -Po '(?<=SimpleVersion = ")[0-9.]+' Source/Common/Version.cs)
-        TAG="v${VERSION}-${VERSIONED_SUFFIX}.$(date -u +%Y%m%d)"
-        if gh release view "$TAG" >/dev/null 2>&1; then
-          gh release upload "$TAG" Multiplayer-beta.zip Server-beta.zip --clobber
-          gh release edit "$TAG" --title "$TAG" --latest
-        else
-          gh release create --target "${{ github.sha }}" --title "$TAG" --notes-file ".github/workflows/alpha-notes.md" "$TAG"
-          gh release upload "$TAG" Multiplayer-beta.zip Server-beta.zip
-          gh release edit "$TAG" --latest
-        fi
