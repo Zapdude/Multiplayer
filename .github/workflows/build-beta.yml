@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
       - experimental-1.7
     paths-ignore:
       - 'README.md'
