@@ -25,7 +25,7 @@ jobs:
         cache-dependency-path: '**/*.csproj'
 
     - name: Run workshop bundler
-      run: ./workshop_bundler.sh
+      run: bash workshop_bundler.sh
 
     - name: Create output directory
       run: mkdir -p output
