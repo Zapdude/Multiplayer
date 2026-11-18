@@ -53,6 +53,14 @@ public class ClientLoadingState(ConnectionBase connection) : ClientBaseState(con
         downloadTimeStopwatch.Start();
     }
 
+    // The server sends sync opinions to every playing connection, which includes clients still loading. The join
+    // path already applies the initial opinions from the world data, and a live opinion cannot be compared before
+    // the game is loaded, so accept and drop it instead of rejecting the packet (#691).
+    [TypedPacketHandler]
+    public void HandleDesyncCheck(ServerSyncInfoPacket packet)
+    {
+    }
+
     [FragmentedPacketHandler(Packets.Server_WorldData)]
     public void HandleWorldDataFragment(FragmentedPacket packet)
     {
