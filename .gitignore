@@ -263,8 +263,10 @@ __pycache__/
 
 *.binlog
 
-/Assemblies
-/AssembliesCustom
+/Assemblies/*
+!/Assemblies/*.dll
+/AssembliesCustom/*
+!/AssembliesCustom/*.dll
 /Source/Publicise-1.0.0.zip
 /Source/publicise_hash.txt
 /Source/Publicise.exe
