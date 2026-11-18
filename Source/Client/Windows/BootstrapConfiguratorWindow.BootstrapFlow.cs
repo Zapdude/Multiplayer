@@ -269,6 +269,7 @@ public partial class BootstrapConfiguratorWindow
                 multifaction = settings.multifaction,
                 debugMode = settings.debugMode,
                 desyncTraces = settings.desyncTraces,
+                receiveClientDiagnostics = settings.receiveClientDiagnostics,
                 syncConfigs = settings.syncConfigs,
                 autoJoinPoint = settings.autoJoinPoint,
                 devModeScope = settings.devModeScope,

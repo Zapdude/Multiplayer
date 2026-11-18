@@ -116,6 +116,11 @@ public static class ServerSettingsUI
             placeTextNearCheckbox: true);
         entry = entry.Down(30);
 
+        MpUI.CheckboxLabeledWithTipNoHighlight(entry.Width(CheckboxWidth), $"{"MpHostClientLogs".Translate()}:  ",
+            MpUtil.TranslateWithDoubleNewLines("MpHostClientLogsDesc", 2), ref settings.receiveClientDiagnostics,
+            placeTextNearCheckbox: true);
+        entry = entry.Down(30);
+
         if (MpVersion.IsDebug)
         {
             TooltipHandler.TipRegion(entry.Width(CheckboxWidth), "MpArbiterDesc".Translate());

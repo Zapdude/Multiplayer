@@ -104,6 +104,7 @@ namespace Multiplayer.Client
             Multiplayer.GameComp.multifaction = settings.multifaction;
             Multiplayer.GameComp.debugMode = settings.debugMode;
             Multiplayer.GameComp.logDesyncTraces = settings.desyncTraces;
+            Multiplayer.GameComp.receiveClientDiagnostics = settings.receiveClientDiagnostics;
             Multiplayer.GameComp.pauseOnLetter = settings.pauseOnLetter;
             Multiplayer.GameComp.timeControl = settings.timeControl;
         }

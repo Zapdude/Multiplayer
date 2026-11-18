@@ -23,6 +23,10 @@ namespace Multiplayer.Common
             Server.playerManager.UpdateSyncReference();
         }
 
+        [TypedPacketHandler]
+        public void HandleClientDiagnostics(ClientDiagnosticsPacket packet) =>
+            ClientDiagnosticsRelay.Handle(connection, packet);
+
         [PacketHandler(Packets.Client_RequestRejoin)]
         public void HandleRejoin(ByteReader data)
         {

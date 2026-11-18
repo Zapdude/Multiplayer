@@ -247,7 +247,7 @@ public partial class BootstrapConfiguratorWindow : Window, IConnectionStatusList
         if (tab == Tab.Connecting)
             return 5 * 30f;
 
-        return (MpVersion.IsDebug ? 9 : 8) * 30f;
+        return (MpVersion.IsDebug ? 10 : 9) * 30f;
     }
 
     private sealed class PendingUploadState

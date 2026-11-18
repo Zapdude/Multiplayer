@@ -26,7 +26,7 @@ namespace Multiplayer.Client
             Connecting, Gameplay
         }
 
-        public override Vector2 InitialSize => new(550f, 460f);
+        public override Vector2 InitialSize => new(550f, 490f);
 
         private SaveFile file;
         public bool returnToServerBrowser;
@@ -255,6 +255,16 @@ namespace Multiplayer.Client
                 $"{"MpLogDesyncTraces".Translate()}:  ",
                 MpUtil.TranslateWithDoubleNewLines("MpLogDesyncTracesDesc", 2),
                 ref serverSettings.desyncTraces,
+                placeTextNearCheckbox: true
+            );
+            entry = entry.Down(30);
+
+            // Client diagnostics
+            MpUI.CheckboxLabeledWithTipNoHighlight(
+                entry.Width(CheckboxWidth),
+                $"{"MpHostClientLogs".Translate()}:  ",
+                MpUtil.TranslateWithDoubleNewLines("MpHostClientLogsDesc", 2),
+                ref serverSettings.receiveClientDiagnostics,
                 placeTextNearCheckbox: true
             );
             entry = entry.Down(30);

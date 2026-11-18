@@ -16,6 +16,7 @@ namespace Multiplayer.Client.Comp
         public bool multifaction;
         public bool debugMode;
         public bool logDesyncTraces;
+        public bool receiveClientDiagnostics;
         public PauseOnLetter pauseOnLetter;
         public TimeControl timeControl;
         public Dictionary<int, PlayerData> playerData = new(); // player id to player data
@@ -38,6 +39,7 @@ namespace Multiplayer.Client.Comp
             Scribe_Values.Look(ref multifaction, "multifaction", false, true);
             Scribe_Values.Look(ref debugMode, "debugMode");
             Scribe_Values.Look(ref logDesyncTraces, "logDesyncTraces");
+            Scribe_Values.Look(ref receiveClientDiagnostics, "receiveClientDiagnostics");
             Scribe_Values.Look(ref pauseOnLetter, "pauseOnLetter");
             Scribe_Values.Look(ref timeControl, "timeControl");
             Scribe_Values.Look(ref nextSessionId, "nextSessionId");

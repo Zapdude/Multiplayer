@@ -76,6 +76,10 @@ public enum Packets : byte
     // Playing (appended to keep the ids above stable)
     Server_SyncReference,
 
+    // Client diagnostics relay (appended)
+    Client_Diagnostics,
+    Server_Diagnostics,
+
     Count,
     Max = 63 // max packet id
 }

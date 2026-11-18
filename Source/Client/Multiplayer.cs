@@ -209,6 +209,8 @@ namespace Multiplayer.Client
             Log.Message($"Stopping multiplayer session from {new StackTrace().GetFrame(1).GetMethod().FullDescription()}");
 
             SessionLifecycle.Stopping();
+            ClientDiagnostics.Reset();
+            ClientDiagnosticsStore.Reset();
 
             OnMainThread.ClearScheduled();
             LongEventHandler.ClearQueuedEvents();

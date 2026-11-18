@@ -356,5 +356,8 @@
   <MpHideTranslationModsDesc>Translation mods are always compatible.</MpHideTranslationModsDesc>
   <MpStartupSettingsRestart>{0} settings used at startup have changed. Restart RimWorld before hosting.</MpStartupSettingsRestart>
   <MpStartupSettingsOutsideRoom>Change {0} startup settings outside multiplayer, then restart RimWorld.</MpStartupSettingsOutsideRoom>
+  <MpHostClientLogs>Receive client logs</MpHostClientLogs>
+  <MpHostClientLogsDesc1>Automatically receive errors and warnings from other players and save them under MpDesyncs/ClientLogs.</MpHostClientLogsDesc1>
+  <MpHostClientLogsDesc2>Their log text and stack traces can contain file paths, usernames and mod content. Clients are not asked separately; leave this disabled if you do not want to receive that information.</MpHostClientLogsDesc2>
 
 </LanguageData>

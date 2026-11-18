@@ -99,6 +99,10 @@ namespace Multiplayer.Client
         public void HandleChat(ServerChatPacket packet) => Multiplayer.session.AddMsg(packet.msg, rawMessage: packet.rawMessage);
 
         [TypedPacketHandler]
+        public void HandleClientDiagnostics(ServerDiagnosticsPacket packet) =>
+            ClientDiagnosticsStore.Append(packet);
+
+        [TypedPacketHandler]
         public void HandleCursor(ServerCursorPacket packet)
         {
             var player = Multiplayer.session.GetPlayerInfo(packet.playerId);

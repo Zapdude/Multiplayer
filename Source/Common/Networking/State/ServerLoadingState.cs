@@ -12,6 +12,10 @@ public class ServerLoadingState : AsyncConnectionState
     }
 
     [TypedPacketHandler]
+    public void HandleClientDiagnostics(ClientDiagnosticsPacket packet) =>
+        ClientDiagnosticsRelay.Handle(connection, packet);
+
+    [TypedPacketHandler]
     public void HandleClientKeepAlive(ClientKeepAlivePacket packet)
     {
         Player.ticksBehind = packet.ticksBehind;

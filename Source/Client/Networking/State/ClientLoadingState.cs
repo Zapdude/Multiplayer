@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Ionic.Zlib;
+using Multiplayer.Client.Desyncs;
 using Multiplayer.Client.Patches;
 using Multiplayer.Client.Saving;
 using Multiplayer.Common;
@@ -57,6 +58,10 @@ public class ClientLoadingState(ConnectionBase connection) : ClientBaseState(con
     // still active; without a handler here the packet is dropped instead of reaching the playing state later.
     [TypedPacketHandler]
     public void HandlePlayerList(ServerPlayerListPacket packet) => ClientPlayingState.ApplyPlayerList(packet);
+
+    [TypedPacketHandler]
+    public void HandleClientDiagnostics(ServerDiagnosticsPacket packet) =>
+        ClientDiagnosticsStore.Append(packet);
 
     [FragmentedPacketHandler(Packets.Server_WorldData)]
     public void HandleWorldDataFragment(FragmentedPacket packet)

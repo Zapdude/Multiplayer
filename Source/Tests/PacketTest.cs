@@ -257,6 +257,9 @@ public class PacketTest
         yield return new ServerSyncReferencePacket(true);
         yield return new ServerSyncReferencePacket(false);
 
+        yield return new ClientDiagnosticsPacket(123, [1, 2, 3]);
+        yield return new ServerDiagnosticsPacket(4, 123, [1, 2, 3]);
+
         yield return new ClientDesyncedPacket(1234, 4567);
         yield return new ClientDesyncedPacket(0, 0);
         yield return new ClientDesyncedPacket(100, 0);

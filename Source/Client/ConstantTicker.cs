@@ -21,6 +21,7 @@ namespace Multiplayer.Client
             {
                 TickShipCountdown();
                 TickNonSimulation();
+                ClientDiagnostics.Tick();
             }
             finally
             {
