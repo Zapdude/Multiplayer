@@ -30,8 +30,14 @@ public abstract class ClientBaseState(ConnectionBase connection) : MpConnectionS
 
     // Handled in every state: it can arrive while rejoining
     [TypedPacketHandler]
-    public void HandleSyncReference(ServerSyncReferencePacket packet) =>
+    public void HandleSyncReference(ServerSyncReferencePacket packet)
+    {
         Multiplayer.session.isSyncReference = packet.isReference;
+
+        // The sync reference is the authority for the factions in the world; announce them when it changes
+        if (packet.isReference)
+            Factions.FactionCatalogAnnouncements.AnnounceAll();
+    }
 
     // Currently handles disconnection only for Steam connections. See comment in ConnectionBase.Close for more info.
     [TypedPacketHandler]

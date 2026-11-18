@@ -26,6 +26,7 @@ public class StandalonePersistence
     // world are written, so a log of an older version or from an interrupted write has none.
     private string CmdsProtocolPath => Path.Combine(SavedDir, "cmds_protocol.txt");
     private string SessionPath => Path.Combine(SavedDir, "session.dat");
+    private string FactionsPath => Path.Combine(SavedDir, "factions.dat");
     private string InfoPath => Path.Combine(SavedDir, "info.xml");
     private string StatePath => Path.Combine(SavedDir, "state.bin");
 
@@ -52,6 +53,7 @@ public class StandalonePersistence
     {
         EnsureDirectories();
         DeleteCmdsProtocol();
+        if (File.Exists(FactionsPath)) File.Delete(FactionsPath);
 
         using var zip = ZipFile.OpenRead(zipPath);
 
@@ -126,6 +128,7 @@ public class StandalonePersistence
         server.worldData.savedGame = File.ReadAllBytes(WorldPath);
 
         server.worldData.sessionData = File.Exists(SessionPath) ? File.ReadAllBytes(SessionPath) : Array.Empty<byte>();
+        server.worldData.snapshotFactionIds = ReadFactions();
 
         // Load maps
         if (Directory.Exists(MapsDir))
@@ -175,6 +178,7 @@ public class StandalonePersistence
             AtomicWrite(WorldPath, worldData.savedGame);
 
         AtomicWrite(SessionPath, worldData.sessionData ?? Array.Empty<byte>());
+        AtomicWrite(FactionsPath, SerializeFactions(worldData.snapshotFactionIds));
 
         var currentMapIds = worldData.mapData.Keys.ToHashSet();
         DeleteStaleMapFiles(currentMapIds);
@@ -243,11 +247,49 @@ public class StandalonePersistence
         }
     }
 
+    private int[] ReadFactions()
+    {
+        if (!File.Exists(FactionsPath)) return [];
+
+        try
+        {
+            var data = File.ReadAllBytes(FactionsPath);
+            if (data.Length < sizeof(int)) return [];
+
+            var count = BitConverter.ToInt32(data, 0);
+            if (count < 0 || count > 4096 || data.Length < sizeof(int) + count * sizeof(int))
+                return [];
+
+            var ids = new int[count];
+            for (var i = 0; i < count; i++)
+                ids[i] = BitConverter.ToInt32(data, sizeof(int) + i * sizeof(int));
+
+            return ids;
+        }
+        catch (System.Exception e)
+        {
+            ServerLog.Error($"Failed to read persisted factions: {e.Message}");
+            return [];
+        }
+    }
+
+    private static byte[] SerializeFactions(int[] ids)
+    {
+        ids ??= [];
+
+        var data = new byte[sizeof(int) + ids.Length * sizeof(int)];
+        BitConverter.TryWriteBytes(data.AsSpan(0, sizeof(int)), ids.Length);
+
+        for (var i = 0; i < ids.Length; i++)
+            BitConverter.TryWriteBytes(data.AsSpan(sizeof(int) + i * sizeof(int), sizeof(int)), ids[i]);
+
+        return data;
+    }
+
     /// <summary>
     /// Atomic write: write to .tmp, then replace/rename over the target.
     /// </summary>
-    private static void AtomicWrite(string targetPath, byte[] data)
-    {
+    private static void AtomicWrite(string targetPath, byte[] data)    {
         var tmpPath = targetPath + ".tmp";
         File.WriteAllBytes(tmpPath, data);
 

@@ -227,7 +227,9 @@ namespace Multiplayer.Client
                 data.SessionData,
                 mapDataDict,
                 // The commands not executed yet, in order (all of them are in the world's queue)
-                new List<ScheduledCommand>(Multiplayer.AsyncWorldTime.cmds)
+                new List<ScheduledCommand>(Multiplayer.AsyncWorldTime.cmds),
+                // Player factions currently in the world, for the server's faction registry
+                Multiplayer.game?.worldComp?.factionData?.Keys.ToArray() ?? []
             );
         }
 
@@ -253,6 +255,11 @@ namespace Multiplayer.Client
 
                 writer.WritePrefixedBytes(GZipStream.CompressBuffer(gameData));
                 writer.WritePrefixedBytes(GZipStream.CompressBuffer(sessionData));
+
+                var factionIds = snapshot.FactionIds ?? [];
+                writer.WriteInt32(factionIds.Length);
+                foreach (var factionId in factionIds)
+                    writer.WriteInt32(factionId);
 
                 byte[] data = writer.ToArray();
 

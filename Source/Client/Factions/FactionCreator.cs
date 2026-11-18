@@ -128,6 +128,9 @@ public static class FactionCreator
             using (MpScope.PushFaction(newFaction))
                 InitNewGame(scenario);
 
+            // Declare the new faction to the server so other players can select it (only the sync reference is heard)
+            FactionCatalogAnnouncements.Announce(newFaction);
+
             if (executingOnlyOnIssuer)
             {
                 // Runs on the issuer only: e.g. archived dialogs take unique ids

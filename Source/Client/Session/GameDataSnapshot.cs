@@ -9,5 +9,7 @@ public record GameDataSnapshot(
     byte[] SessionData,
     Dictionary<int, byte[]> MapData,
     // All cmds (world and map) since CachedAtTime in execution order, appended to by MultiplayerSession.ScheduleCommand
-    List<ScheduledCommand> Cmds
+    List<ScheduledCommand> Cmds,
+    // Faction ids present when the snapshot was taken; the server uses them to validate faction choices
+    int[] FactionIds = null
 );

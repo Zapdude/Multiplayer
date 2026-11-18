@@ -139,6 +139,64 @@ public class ServerPlayingStateTest
         Assert.That(bob.FactionId, Is.EqualTo(2));
     }
 
+    [Test]
+    public void MultifactionAcceptsSnapshotFaction()
+    {
+        server.settings.multifaction = true;
+        server.worldData.hostFactionId = 0;
+        server.worldData.spectatorFactionId = -2;
+        server.worldData.snapshotFactionIds = [1, 2];
+
+        var (host, _) = AddPlayer("host");
+        server.hostUsername = "host";
+        var (bob, _) = AddPlayer("bob");
+        bob.FactionId = 1;
+
+        host.conn.GetState<ServerPlayingState>()!.HandleSetFaction(new ClientSetFactionPacket(bob.id, 2));
+
+        Assert.That(bob.FactionId, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void MultifactionQueuesUnknownFactionUntilDeclared()
+    {
+        server.settings.multifaction = true;
+        server.worldData.hostFactionId = 0;
+        server.worldData.spectatorFactionId = -2;
+        server.worldData.snapshotFactionIds = [1];
+
+        var (host, _) = AddPlayer("host");
+        server.hostUsername = "host";
+        var (bob, bobConn) = AddPlayer("bob");
+        bob.FactionId = 1;
+
+        bobConn.GetState<ServerPlayingState>()!.HandleSetFaction(new ClientSetFactionPacket(bob.id, 9));
+        Assert.That(bob.FactionId, Is.EqualTo(1));
+
+        host.conn.GetState<ServerPlayingState>()!.HandleSetFaction(new ClientSetFactionPacket(-1, 9));
+        Assert.That(bob.FactionId, Is.EqualTo(9));
+    }
+
+    [Test]
+    public void NonReferenceCannotDeclareFaction()
+    {
+        server.settings.multifaction = true;
+        server.worldData.hostFactionId = 0;
+        server.worldData.spectatorFactionId = -2;
+        server.worldData.snapshotFactionIds = [1];
+
+        AddPlayer("host");
+        server.hostUsername = "host";
+        var (bob, bobConn) = AddPlayer("bob");
+        bob.FactionId = 1;
+
+        var bobState = bobConn.GetState<ServerPlayingState>()!;
+        bobState.HandleSetFaction(new ClientSetFactionPacket(bob.id, 9));
+        bobState.HandleSetFaction(new ClientSetFactionPacket(-1, 9));
+
+        Assert.That(bob.FactionId, Is.EqualTo(1));
+    }
+
     [TestCase(-1000, 0)]
     [TestCase(int.MinValue, 0)]
     [TestCase(int.MaxValue, ServerPlayer.MaxTicksBehind)]

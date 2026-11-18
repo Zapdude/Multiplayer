@@ -52,6 +52,7 @@ public class JoinPointTest
         writer.WritePrefixedBytes(map ?? [7]);
         writer.WritePrefixedBytes(game);
         writer.WritePrefixedBytes([5]);
+        writer.WriteInt32(0); // no faction ids
         player.conn.GetState<ServerPlayingState>()!.HandleWorldDataUpload(new ByteReader(writer.ToArray()));
     }
 

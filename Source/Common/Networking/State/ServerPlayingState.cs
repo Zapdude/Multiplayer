@@ -147,17 +147,29 @@ namespace Multiplayer.Common
             var game = data.ReadPrefixedBytes()!;
             var session = data.ReadPrefixedBytes()!;
 
+            int factionCount = data.ReadInt32();
+            if (factionCount < 0 || factionCount > 4096)
+            {
+                ServerLog.Error($"Rejected world upload from {Player.Username}: invalid faction count {factionCount}");
+                return;
+            }
+
+            var factionIds = new int[factionCount];
+            for (int i = 0; i < factionCount; i++)
+                factionIds[i] = data.ReadInt32();
+
             // The host's initial upload when hosting, there is no command log yet
             if (Server.worldData.savedGame == null && !Server.IsStandaloneServer && Player.IsHost)
             {
                 Server.worldData.mapData = maps;
                 Server.worldData.savedGame = game;
                 Server.worldData.sessionData = session;
+                Server.worldData.snapshotFactionIds = factionIds;
                 return;
             }
 
             // Anything else replacing the world without its command log would break every later joiner
-            Server.worldData.TryCompleteJoinPoint(Player, tick, maps, game, session);
+            Server.worldData.TryCompleteJoinPoint(Player, tick, maps, game, session, factionIds);
         }
 
         [FragmentedPacketHandler(Packets.Client_WorldDataUpload)]
@@ -267,6 +279,13 @@ namespace Multiplayer.Common
             int playerId = packet.playerId;
             int factionId = packet.factionId;
 
+            // A faction was created on the sync reference; only it may declare new factions
+            if (playerId == -1)
+            {
+                Server.worldData.Factions.Register(Player, factionId);
+                return;
+            }
+
             // Players switch their own faction; moving other players (factions window drag and drop) is host-only
             if (playerId != Player.id && !Player.IsHost)
             {
@@ -278,8 +297,8 @@ namespace Multiplayer.Common
             if (player == null) return;
             if (player.FactionId == factionId) return;
 
-            player.FactionId = factionId;
-            Server.SendToPlaying(new ServerSetFactionPacket(playerId, factionId));
+            // Only factions known from the snapshot or declared after it are accepted; others stay pending
+            Server.worldData.Factions.Request(player, factionId);
         }
 
         public const float MaxFrameTime = 10_000f;

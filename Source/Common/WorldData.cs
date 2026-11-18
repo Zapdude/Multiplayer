@@ -15,6 +15,12 @@ public class WorldData
     public byte[]? sessionData; // Compressed semi persistent data
     public Dictionary<int, byte[]> mapData = new(); // Map id to compressed map data
 
+    // Player factions present in savedGame, uploaded with the snapshot. Validated against the world's live
+    // faction data by the uploader; the server uses them to accept only existing factions.
+    public int[] snapshotFactionIds = [];
+
+    public FactionCatalog Factions { get; }
+
     // Serialized cmds since the last join point, in the order they were sent to clients. Live clients execute
     // commands in arrival order, so joiners must get exactly this order (not grouped by map).
     public List<byte[]> cmds = new();
@@ -58,6 +64,7 @@ public class WorldData
     public WorldData(MultiplayerServer server)
     {
         Server = server;
+        Factions = new FactionCatalog(this);
     }
 
     private int CurrentJoinPointTick => Server.IsStandaloneServer ? Server.gameTimer : Server.workTicks;
@@ -131,7 +138,7 @@ public class WorldData
     /// Accepts the uploaded world only if it belongs to the join point being created. World, maps and cmds are
     /// replaced together so the stored save and its command log always match.
     public bool TryCompleteJoinPoint(ServerPlayer player, int tick, Dictionary<int, byte[]> uploadedMaps,
-        byte[] uploadedGame, byte[] uploadedSession)
+        byte[] uploadedGame, byte[] uploadedSession, int[] uploadedFactionIds)
     {
         if (!CreatingJoinPoint)
         {
@@ -149,6 +156,7 @@ public class WorldData
         mapData = uploadedMaps;
         savedGame = uploadedGame;
         sessionData = uploadedSession;
+        snapshotFactionIds = uploadedFactionIds ?? [];
 
         if (Server.IsStandaloneServer)
             RecordStandaloneSnapshot(player, tick);
