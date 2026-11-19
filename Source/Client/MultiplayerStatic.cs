@@ -86,6 +86,12 @@ namespace Multiplayer.Client
             MpConnectionState.SetImplementation(ConnectionStateEnum.ClientPlaying, typeof(ClientPlayingState));
             MpConnectionState.SetImplementation(ConnectionStateEnum.ClientBootstrap, typeof(ClientBootstrapState));
 
+            bool joiningHandler = VerifyPlayerListHandler(ConnectionStateEnum.ClientJoining);
+            bool loadingHandler = VerifyPlayerListHandler(ConnectionStateEnum.ClientLoading);
+            bool playingHandler = VerifyPlayerListHandler(ConnectionStateEnum.ClientPlaying);
+            if (joiningHandler && loadingHandler && playingHandler)
+                Log.Message("[MP] Player list handler verified for joining, loading and playing states.");
+
             MultiplayerData.CollectCursorIcons();
 
             PersistentDialog.BindAll(typeof(Multiplayer).Assembly);
@@ -236,6 +242,29 @@ namespace Multiplayer.Client
         public class SyncContainer
         {
             public List<SyncHandler> handlers = Sync.handlers;
+        }
+
+        private static readonly FieldInfo PacketHandlersField =
+            AccessTools.Field(typeof(MpConnectionState), "packetHandlers");
+
+        // A missing handler silently drops the player list in that state (the server can send it
+        // while the client is still loading). Fail loudly at startup if the registration is wrong.
+        private static bool VerifyPlayerListHandler(ConnectionStateEnum state)
+        {
+            var handlers = PacketHandlersField?.GetValue(null) as Array;
+            if (handlers == null)
+            {
+                Log.Error("[MP] Could not read the packet handler registry to verify the player list handler.");
+                return false;
+            }
+
+            if (handlers.GetValue((int)state, (int)Packets.Server_PlayerList) == null)
+            {
+                Log.Error($"[MP] {state} has no Server_PlayerList handler; the player list will be dropped in that state.");
+                return false;
+            }
+
+            return true;
         }
 
         private static void DoPatches()

@@ -33,6 +33,23 @@ public static class TimestampFixer
         });
     }
 
+    /// <summary>
+    /// Registers a timestamp fixer owned by a compat mod. The delegate receives the exposable and the
+    /// offset and must add it to its own fields. Multiplayer.Compat's RegisterTimestampFixer probes for
+    /// exactly this signature; without it the fallback builds a FieldGetter list that does not match
+    /// this fork's List&lt;FieldFixer&gt; and every VEF ability fixer fails at startup.
+    /// </summary>
+    public static void RegisterTimestampFields(Type type, Action<object, int> convert)
+    {
+        if (type == null || convert == null)
+            return;
+
+        timestampFields.GetOrAddNew(type).Add((obj, offset) => convert(obj, offset));
+
+        // FieldsFor caches the base-type-expanded list per exact type.
+        resolvedFields.Clear();
+    }
+
     static TimestampFixer()
     {
         Add((Pawn_MindState mind) => ref mind.canSleepTick);

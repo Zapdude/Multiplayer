@@ -20,7 +20,10 @@ public static class MpSettingsUI
 
     internal static void DoSettingsWindowContents(MpSettings settings, Rect inRect)
     {
-        var buttonPos = new Rect(inRect.xMax - 150, inRect.yMin + 10, 125, 32);
+        // Dialog_ModSettings draws its title in the row above the content rect and reserves the
+        // right 150 + 17 px of that row. Keep the page selector there; placing it at yMin + 10
+        // draws it over the first two settings rows (the username and autosave fields).
+        var buttonPos = new Rect(inRect.xMax - 150, inRect.yMin - 36f, 125, 32);
 
         Widgets.Dropdown(buttonPos, currentPage, x => x, GeneratePageMenu, $"MpSettingsPage{currentPage}".Translate());
 

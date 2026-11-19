@@ -15,8 +15,15 @@ namespace Multiplayer.Client.Patches
 
         public static bool useLocalIdsOverride;
 
+        // Compatibility escape hatch: some mods create things that are kept beyond the interface
+        // (e.g. VGE2 generates its landing raid crew in the preview coroutine). Forcing global IDs
+        // for that scope keeps those things on the shared ID sequence instead of local negative IDs.
+        public static bool forceGlobalIds;
+
         private static bool UseLocalIds =>
-            Multiplayer.Client != null && (useLocalIdsOverride || Multiplayer.InInterface || Current.ProgramState == ProgramState.Entry);
+            Multiplayer.Client != null
+            && !forceGlobalIds
+            && (useLocalIdsOverride || Multiplayer.InInterface || Current.ProgramState == ProgramState.Entry);
 
         static bool Prefix()
         {
