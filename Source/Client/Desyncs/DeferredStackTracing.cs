@@ -142,7 +142,7 @@ namespace Multiplayer.Client.Desyncs
     }
 
     [HarmonyPatch(typeof(UniqueIDsManager), nameof(UniqueIDsManager.GetNextID))]
-    public static class UniqueIdsPatch
+    public static class DeferredUniqueIdsPatch
     {
         static void Postfix()
         {
@@ -151,7 +151,7 @@ namespace Multiplayer.Client.Desyncs
     }
 
     [HarmonyPatch(typeof(Thing), nameof(Thing.SpawnSetup))]
-    public static class ThingSpawnPatch
+    public static class DeferredThingSpawnPatch
     {
         static void Postfix(Thing __instance)
         {
@@ -161,7 +161,7 @@ namespace Multiplayer.Client.Desyncs
     }
 
     [HarmonyPatch(typeof(Thing), nameof(Thing.DeSpawn))]
-    public static class ThingDeSpawnPatch
+    public static class DeferredThingDeSpawnPatch
     {
         static void Postfix(Thing __instance)
         {
