@@ -22,25 +22,9 @@ public class ClientLoadingState(ConnectionBase connection) : ClientBaseState(con
     public LoadingState subState = LoadingState.Waiting;
     public uint WorldExpectedSize { get; private set; }
     public uint WorldReceivedSize { get; private set; }
-    public float DownloadProgress => (float)WorldReceivedSize / WorldExpectedSize;
-    public int DownloadProgressPercent => (int)(DownloadProgress * 100);
-    public int DownloadSpeedKBps
-    {
-        get
-        {
-            if (downloadCheckpoints.Count < 2) return 0;
-            var firstCheckpoint = downloadCheckpoints.First();
-            var lastCheckpoint = downloadCheckpoints.Last();
-
-            var timeTakenMs = Utils.MillisNow - firstCheckpoint.Item1;
-            if (timeTakenMs <= 0) return 0;
-            var timeTakenSecs = timeTakenMs / 1000f;
-
-            var downloadedBytes = lastCheckpoint.Item2 - firstCheckpoint.Item2;
-            var downloadedKBytes = downloadedBytes / 1000;
-            return (int)(downloadedKBytes / timeTakenSecs);
-        }
-    }
+    public float DownloadProgress => DownloadMeter.Progress(WorldReceivedSize, WorldExpectedSize);
+    public int DownloadProgressPercent => DownloadMeter.Percent(WorldReceivedSize, WorldExpectedSize);
+    public int DownloadSpeedKBps => DownloadMeter.SpeedKBps(downloadCheckpoints, Utils.MillisNow);
 
     private List<(long, uint)> downloadCheckpoints = new(capacity: 64);
     private Stopwatch downloadTimeStopwatch = new();

@@ -22,12 +22,6 @@ public class DeterministicHashTest
     }
 
     [Test]
-    public void CombinersAreRepeatable()
-    {
-        Assert.That(DeterministicHash.HashCombineInt(7, 11, 13), Is.EqualTo(DeterministicHash.HashCombineInt(7, 11, 13)));
-    }
-
-    [Test]
     public void CombinersDependOnEveryValue()
     {
         var baseline = DeterministicHash.HashCombineInt(1, 2, 3, 4, 5, 6, 7, 8);

@@ -26,6 +26,7 @@
       <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
       <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
       <Compile Include="..\Client\Factions\FactionRepeat.cs" Link="Client\FactionRepeat.cs" />
+      <Compile Include="..\Client\Networking\State\DownloadMeter.cs" Link="Client\DownloadMeter.cs" />
     </ItemGroup>
 
     <ItemGroup>
