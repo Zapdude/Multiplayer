@@ -1,12 +1,13 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 
 namespace Multiplayer.Common
 {
     public static class MpVersion
     {
-        public const string SimpleVersion = "0.11.5";
-        public const int Protocol = 58;
+        public const string SimpleVersion = "0.12.0-unstable";
+        public const string AssemblyVersion = "0.12.0.0";
+        public const int Protocol = 59;
 
         public static readonly string? GitHash = Assembly.GetExecutingAssembly()
             .GetCustomAttributes<AssemblyMetadataAttribute>()

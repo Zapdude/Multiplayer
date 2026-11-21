@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
   <packageId>zap.multiplayerbodged</packageId>
   <name>Multiplayer Bodged</name>
@@ -7,7 +7,7 @@
   </supportedVersions>
   <author>Zapdude</author>
   <url>https://github.com/Zapdude/Multiplayer</url>
-  <modVersion>0.11.5</modVersion> <!-- workshop_bundler.sh appends the commit hash -->
+  <modVersion>0.12.0-unstable</modVersion> <!-- build/apply-version.sh --hash adds the commit hash -->
   <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above Multiplayer Bodge Jobs to work correctly.
 RimWorld 1.7 requires Harmony 3&lt;/b&gt;\n
 

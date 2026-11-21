@@ -8,6 +8,8 @@ of its own.
 This fork is for personal use. Reports about it should not go to the upstream
 team.
 
+**Current fork version:** 0.12.0-unstable (RimWorld 1.7, protocol 59).
+
 ## Base
 
 `upstream/dev` at `ddfccdb` — "Update .NET version to 10 (#1008)".
@@ -162,14 +164,15 @@ encoding, so the protocol is unchanged.
 
 ### Protocol
 
-`MpVersion.Protocol` is 58. This fork can't connect to stock 0.11.5 clients, and
-stock clients can't connect to it.
+`MpVersion.Protocol` is 59 on 1.7; 1.6 stays on 58. The 1.7 diagnostics packets do
+not exist in 1.6, so the two fork branches must not share a protocol. This fork
+can't connect to stock 0.11.5 clients, and stock clients can't connect to it.
 
 ### Tests
 
 `Source/Tests/SyncOpinionCompressionTest.cs` covers the compression, including
 `LargeTraceCountSerializes`, which checks that a list of 2,532,642 traces with
-1,000 distinct values round-trips correctly. 318 tests pass.
+1,000 distinct values round-trips correctly. 323 tests pass.
 
 ## Fork housekeeping
 

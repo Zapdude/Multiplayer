@@ -35,6 +35,9 @@ jobs:
         cache: true
         cache-dependency-path: '**/*.csproj'
 
+    - name: Apply fork version
+      run: bash build/apply-version.sh --hash
+
     - name: Install Mod Dependencies
       run: dotnet restore ${{ env.SLN_PATH }}
 

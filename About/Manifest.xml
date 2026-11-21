@@ -4,6 +4,6 @@
 
   <identifier>MultiplayerBodged</identifier>
   <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/experimental-1.7/About/Manifest.xml</manifestUri>
-  <downloadUri>https://github.com/Zapdude/Multiplayer/releases/latest</downloadUri>
+  <downloadUri>https://github.com/Zapdude/Multiplayer/releases/tag/continuous-1.7</downloadUri>
 
 </Manifest>
