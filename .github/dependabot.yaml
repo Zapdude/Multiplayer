@@ -1,31 +1,16 @@
-# Read from the repository's default branch. When personal/dev-integration becomes the
+﻿# Read from the repository's default branch. When personal/dev-integration becomes the
 # default branch, these entries maintain both fork branches from one config.
 version: 2
 updates:
   - package-ecosystem: nuget
-    directories:
-      - /Source/Client
-      - /Source/Common
-      - /Source/Server
-      - /Source/Tests
-      - /Source/TestsOnMono
-      - /Source/MultiplayerLoader
-      - /Source/ChatCommandContracts
-      - /Source/SourceGen
+    directory: /Source
     target-branch: personal/dev-integration
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
 
   - package-ecosystem: nuget
-    directories:
-      - /Source/Client
-      - /Source/Common
-      - /Source/Server
-      - /Source/Tests
-      - /Source/MultiplayerLoader
-      - /Source/ChatCommandContracts
-      - /Source/SourceGen
+    directory: /Source
     target-branch: experimental-1.7
     schedule:
       interval: weekly
