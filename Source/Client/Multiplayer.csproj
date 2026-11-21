@@ -59,7 +59,7 @@
 
   <PropertyGroup>
     <OutputPath>bin\$(Configuration)\</OutputPath>
-    <ModOutputPath Condition="'$(ModOutputPath)' == ''">..\..\</ModOutputPath>
+    <ModOutputPath Condition="'$(ModOutputPath)' == ''">../../</ModOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Label="Normalise stack trace file locations">
