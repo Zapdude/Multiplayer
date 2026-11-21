@@ -162,6 +162,7 @@ public static class TimestampFixer
     // The holders of the fields above, without the save pass's walk through the pawn's data
     private static void FixDirectly(Pawn p)
     {
+        ProcessExposable(p);
         ProcessExposable(p.mindState);
         ProcessExposable(p.guest);
         ProcessExposable(p.needs?.food);
