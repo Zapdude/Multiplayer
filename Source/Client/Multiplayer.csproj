@@ -41,6 +41,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MultiplayerLoader\MultiplayerLoader.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\SourceGen\SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
