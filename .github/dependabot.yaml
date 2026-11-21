@@ -1,10 +1,10 @@
-﻿# Read from the repository's default branch. When personal/dev-integration becomes the
-# default branch, these entries maintain both fork branches from one config.
+﻿# Dependabot reads this file from the default branch (master) and maintains
+# both fork branches from this single config.
 version: 2
 updates:
   - package-ecosystem: nuget
     directory: /Source
-    target-branch: personal/dev-integration
+    target-branch: master
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
@@ -18,7 +18,7 @@ updates:
 
   - package-ecosystem: github-actions
     directory: /
-    target-branch: personal/dev-integration
+    target-branch: master
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

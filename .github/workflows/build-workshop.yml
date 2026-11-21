@@ -1,5 +1,8 @@
 name: Build workshop
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
@@ -43,3 +46,16 @@ jobs:
         path: |
           Multiplayer-v*.zip
           output/
+
+    # Releases are created outside this workflow (by the continuous build or by
+    # hand), so only attach when one exists for this tag.
+    - name: Attach mod zip to release
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ github.ref_name }}
+      run: |
+        if gh release view "$TAG" >/dev/null 2>&1; then
+          gh release upload "$TAG" Multiplayer-v*.zip --clobber
+        else
+          echo "::notice::No release exists for $TAG; the zip is in the workflow artifacts."
+        fi
