@@ -55,7 +55,8 @@ public static class TimestampFixer
         // Pawn
         Add((Pawn pawn) => ref pawn.lastSleepDisturbedTick);
 
-        // Pawn_MindState. Fields with a -99999 "never" value keep it; 0 is a real tick
+        // Pawn_MindState. minValid keeps each field's own "never" marker out of the shift; 0 is unset for the
+        // fields whose save default is 0 even though their in-memory marker is negative
         Add((Pawn_MindState mind) => ref mind.canSleepTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.canLovinTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.lastIngestTick, minValid: 0);
@@ -63,9 +64,9 @@ public static class TimestampFixer
         Add((Pawn_MindState mind) => ref mind.exitMapAfterTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.lastDisturbanceTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.hibernationEndedTick, minValid: 0);
-        Add((Pawn_MindState mind) => ref mind.lastMeleeThreatHarmTick, minValid: 0);
-        Add((Pawn_MindState mind) => ref mind.lastEngageTargetTick, minValid: 0);
-        Add((Pawn_MindState mind) => ref mind.lastAttackTargetTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastMeleeThreatHarmTick, minValid: 1);
+        Add((Pawn_MindState mind) => ref mind.lastEngageTargetTick, minValid: 1);
+        Add((Pawn_MindState mind) => ref mind.lastAttackTargetTick, minValid: 1);
         Add((Pawn_MindState mind) => ref mind.lastAssignedInteractTime, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.lastInventoryRawFoodUseTick);
         Add((Pawn_MindState mind) => ref mind.lastTakeCombatEnhancingDrugTick, minValid: 0);
@@ -74,7 +75,7 @@ public static class TimestampFixer
         Add((Pawn_MindState mind) => ref mind.noAidRelationsGainUntilTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.applyBedThoughtsTick, minValid: 1); // 0 = not scheduled
         Add((Pawn_MindState mind) => ref mind.applyThroneThoughtsTick, minValid: 1); // 0 = not scheduled
-        Add((Pawn_MindState mind) => ref mind.lastSelfTendTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastSelfTendTick, minValid: 1);
         Add((Pawn_MindState mind) => ref mind.lastPredatorHuntingPlayerNotificationTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.lastSlaveSuppressedTick, minValid: 0);
         Add((Pawn_MindState mind) => ref mind.lastHumanMeatIngestedTick, minValid: 0);
