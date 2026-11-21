@@ -18,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\..\Languages\English\**\*" />
+    <Content Include="../../Languages/English/**/*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,7 +60,7 @@
   </Target>
 
   <PropertyGroup>
-    <ModOutputPath>..\..\</ModOutputPath>
+    <ModOutputPath>../../</ModOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Label="Normalise stack trace file locations">
@@ -68,16 +68,16 @@
   </PropertyGroup>
 
   <Target Name="CopyToRimworld" AfterTargets="Build">
-    <Copy SourceFiles="bin\Multiplayer.dll" DestinationFiles="$(ModOutputPath)\AssembliesCustom\Multiplayer.dll" />
-    <Copy SourceFiles="bin\Multiplayer.pdb" DestinationFiles="$(ModOutputPath)\AssembliesCustom\Multiplayer.pdb" />
-    <Copy SourceFiles="bin\MultiplayerCommon.dll" DestinationFiles="$(ModOutputPath)\AssembliesCustom\MultiplayerCommon.dll" />
-    <Copy SourceFiles="bin\MultiplayerCommon.pdb" DestinationFiles="$(ModOutputPath)\AssembliesCustom\MultiplayerCommon.pdb" />
+    <Copy SourceFiles="bin/Multiplayer.dll" DestinationFiles="$(ModOutputPath)/AssembliesCustom/Multiplayer.dll" />
+    <Copy SourceFiles="bin/Multiplayer.pdb" DestinationFiles="$(ModOutputPath)/AssembliesCustom/Multiplayer.pdb" />
+    <Copy SourceFiles="bin/MultiplayerCommon.dll" DestinationFiles="$(ModOutputPath)/AssembliesCustom/MultiplayerCommon.dll" />
+    <Copy SourceFiles="bin/MultiplayerCommon.pdb" DestinationFiles="$(ModOutputPath)/AssembliesCustom/MultiplayerCommon.pdb" />
 
     <ItemGroup>
-      <CopyToRimworld_ItemsToCopy Include="bin\*.dll" Exclude="bin\Multiplayer.dll;bin\MultiplayerCommon.dll" />
+      <CopyToRimworld_ItemsToCopy Include="bin/*.dll" Exclude="bin/Multiplayer.dll;bin/MultiplayerCommon.dll" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(CopyToRimworld_ItemsToCopy)" DestinationFolder="$(ModOutputPath)\Assemblies\" />
+    <Copy SourceFiles="@(CopyToRimworld_ItemsToCopy)" DestinationFolder="$(ModOutputPath)/Assemblies/" />
   </Target>
 
   <Import Project="PersonalDefinitions.targets" Condition="exists('PersonalDefinitions.targets')" />
