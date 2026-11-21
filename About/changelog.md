@@ -21,9 +21,10 @@ code paths, the CI packaging split, and the .NET 10 and Harmony 3 requirements.
 
 - Targets RimWorld 1.7, .NET 10 and Harmony 3. Prepatcher is not required.
 - Builds stage into `1.7/Assemblies` and `1.7/AssembliesCustom`, and
-  `LoadFolders.xml` loads the root and `1.7` folders for 1.7 only.
-- The workshop bundler still packages the frozen 1.5 and 1.6 releases alongside
-  the 1.7 build.
+  `LoadFolders.xml` loads the root and `1.7` folders for 1.7 only. Both folders
+  are build output and are no longer committed.
+- The workshop bundler packages the 1.7 build only; the frozen 1.5 and 1.6
+  releases are not included.
 
 ## Integrated pull requests
 
