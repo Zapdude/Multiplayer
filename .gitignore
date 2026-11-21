@@ -267,10 +267,9 @@ __pycache__/
 /AssembliesCustom
 /1.6/Assemblies/
 /1.6/AssembliesCustom/
-/1.7/Assemblies/*
-!/1.7/Assemblies/*.dll
-/1.7/AssembliesCustom/*
-!/1.7/AssembliesCustom/*.dll
+# Build output: staged by the Client project's CopyToRimworld target, never committed.
+/1.7/Assemblies/
+/1.7/AssembliesCustom/
 /.versioned-build-backup-*/
 /Source/Publicise-1.0.0.zip
 /Source/publicise_hash.txt
