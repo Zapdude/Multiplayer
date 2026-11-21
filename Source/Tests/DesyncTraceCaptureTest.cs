@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Multiplayer.Client;
 using Multiplayer.Client.Desyncs;
 
@@ -14,7 +14,9 @@ public class DesyncTraceCaptureTest
         Assert.That(trace, Is.EqualTo(default(DesyncTrace)));
     }
 
+    // Tiered JIT/OSR can allocate on the measured thread; this keeps the zero-allocation assertion exact.
     [Test]
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.AggressiveOptimization)]
     public void FastReturnsContextMarkerWithoutAllocatingManagedStacks()
     {
         for (int i = 0; i < 100; i++)

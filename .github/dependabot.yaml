@@ -1,9 +1,46 @@
+# Read from the repository's default branch. When personal/dev-integration becomes the
+# default branch, these entries maintain both fork branches from one config.
 version: 2
 updates:
-  - package-ecosystem: gitsubmodule
-    directory: /
-    target-branch: dev
-    allow:
-      - dependency-name: Languages
+  - package-ecosystem: nuget
+    directories:
+      - /Source/Client
+      - /Source/Common
+      - /Source/Server
+      - /Source/Tests
+      - /Source/TestsOnMono
+      - /Source/MultiplayerLoader
+      - /Source/ChatCommandContracts
+      - /Source/SourceGen
+    target-branch: personal/dev-integration
     schedule:
-      interval: daily
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: nuget
+    directories:
+      - /Source/Client
+      - /Source/Common
+      - /Source/Server
+      - /Source/Tests
+      - /Source/MultiplayerLoader
+      - /Source/ChatCommandContracts
+      - /Source/SourceGen
+    target-branch: experimental-1.7
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: personal/dev-integration
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: experimental-1.7
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
