@@ -23,6 +23,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
+      <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\ChatCommandContracts\ChatCommandContracts.csproj" />
       <ProjectReference Include="..\Common\Common.csproj" />
       <ProjectReference Include="..\SourceGen\SourceGen.csproj" ReferenceOutputAssembly="true" />

@@ -28,8 +28,7 @@ public static class TimestampFixer
         timestampFields.GetOrAddNew(typeof(T)).Add((obj, offset) =>
         {
             ref int field = ref t((T)obj);
-            if (field >= minValid)
-                field = Math.Max(minValid, field + offset);
+            field = TimestampMath.Shift(field, offset, minValid);
         });
     }
 
