@@ -48,11 +48,13 @@ hash_suffix = f" ({sys.argv[1]})" if sys.argv[1] else ""
 
 def replace_one(path, pattern, replacement):
     path = root / path
-    text = path.read_text(encoding="utf-8")
+    with path.open("r", encoding="utf-8", newline="") as f:
+        text = f.read()
     new, count = re.subn(pattern, replacement, text, count=1)
     if count != 1:
         raise SystemExit(f"apply-version: expected exactly one match for {pattern!r} in {path}")
-    path.write_text(new, encoding="utf-8")
+    with path.open("w", encoding="utf-8", newline="") as f:
+        f.write(new)
 
 replace_one(
     "Source/Common/Version.cs",
