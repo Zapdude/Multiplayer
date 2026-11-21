@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
       <Compile Include="..\Client\Settings\DesyncTracingMode.cs" Link="Client\DesyncTracingMode.cs" />
       <Compile Include="..\Client\Desyncs\DesyncTraceCapture.cs" Link="Client\DesyncTraceCapture.cs" />
       <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
