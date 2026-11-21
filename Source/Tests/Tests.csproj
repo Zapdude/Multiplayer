@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -24,6 +24,7 @@
     <ItemGroup>
       <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
       <Compile Include="..\Client\Settings\DesyncTracingMode.cs" Link="Client\DesyncTracingMode.cs" />
+      <Compile Include="..\Client\Factions\FactionRepeat.cs" Link="Client\FactionRepeat.cs" />
       <Compile Include="..\Client\Desyncs\DesyncTraceCapture.cs" Link="Client\DesyncTraceCapture.cs" />
       <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
       <Compile Include="..\Client\Util\HashCodeTranspiler.cs" Link="Client\HashCodeTranspiler.cs" />
