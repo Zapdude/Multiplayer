@@ -330,11 +330,28 @@ static class PawnSpawn_FixTimestamp
         if (__instance.Map == null) return;
 
         var comp = __instance.GetComp<MultiplayerPawnComp>();
+
+        // World to map: WorldPawns.RemovePawn runs from here (or from DropPodUtility before the spawn) and records
+        // the world clock. Drop pods and shuttles from the world take this path.
         if (comp.worldPawnRemoveTick != -1)
         {
             TimestampFixer.FixPawn(__instance, null, __instance.Map);
             comp.worldPawnRemoveTick = -1;
+            comp.lastMap = -1;
+            return;
         }
+
+        // Map to map without a world pawn in between (teleports, gravships, other mods). PawnDespawn_RememberMap
+        // recorded the map it left; the arrival never converted those timestamps before (#422).
+        var lastMap = comp.lastMap;
+        if (lastMap == -1) return;
+
+        comp.lastMap = -1;
+        if (lastMap == __instance.Map.uniqueID) return;
+
+        var oldMap = Find.Maps.FirstOrDefault(m => m.uniqueID == lastMap);
+        if (oldMap != null)
+            TimestampFixer.FixPawn(__instance, oldMap, __instance.Map);
     }
 }
 
