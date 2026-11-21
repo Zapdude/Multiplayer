@@ -54,11 +54,6 @@ public class ClientLoadingState(ConnectionBase connection) : ClientBaseState(con
         downloadTimeStopwatch.Start();
     }
 
-    // The server sends the full roster right after the world data. On a rejoin that arrives while this state is
-    // still active; without a handler here the packet is dropped instead of reaching the playing state later.
-    [TypedPacketHandler]
-    public void HandlePlayerList(ServerPlayerListPacket packet) => ClientPlayingState.ApplyPlayerList(packet);
-
     [TypedPacketHandler]
     public void HandleClientDiagnostics(ServerDiagnosticsPacket packet) =>
         ClientDiagnosticsStore.Append(packet);
