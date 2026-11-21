@@ -154,8 +154,9 @@ namespace Multiplayer.Client
             );
     }
 
+    // Replays the world storyteller once per faction; the AsyncTime patch only gates the vanilla tick.
     [HarmonyPatch(typeof(Storyteller), nameof(Storyteller.StorytellerTick))]
-    static class StorytellerTickPatch
+    static class FactionStorytellerTickPatch
     {
         static bool ignore;
 
