@@ -53,16 +53,81 @@ public static class TimestampFixer
 
     static TimestampFixer()
     {
-        Add((Pawn_MindState mind) => ref mind.canSleepTick);
-        Add((Pawn_MindState mind) => ref mind.canLovinTick);
+        // Pawn
+        Add((Pawn pawn) => ref pawn.lastSleepDisturbedTick);
+
+        // Pawn_MindState. Fields with a -99999 "never" value keep it; 0 is a real tick
+        Add((Pawn_MindState mind) => ref mind.canSleepTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.canLovinTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastIngestTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.nextApparelOptimizeTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.exitMapAfterTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastDisturbanceTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.hibernationEndedTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastMeleeThreatHarmTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastEngageTargetTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastAttackTargetTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastAssignedInteractTime, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastInventoryRawFoodUseTick);
+        Add((Pawn_MindState mind) => ref mind.lastTakeCombatEnhancingDrugTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastTakeRecreationalDrugTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastHarmTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.noAidRelationsGainUntilTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.applyBedThoughtsTick, minValid: 1); // 0 = not scheduled
+        Add((Pawn_MindState mind) => ref mind.applyThroneThoughtsTick, minValid: 1); // 0 = not scheduled
+        Add((Pawn_MindState mind) => ref mind.lastSelfTendTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastPredatorHuntingPlayerNotificationTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastSlaveSuppressedTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastHumanMeatIngestedTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.nextInventoryStockTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.nextSleepingBreastfeedStrictTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastRangedHarmTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastRotStinkTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastBroughtToSafeTemperatureTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastBecameVisibleTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastBecameInvisibleTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastForcedVisibleTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastCombatantTick, minValid: 0);
+        Add((Pawn_MindState mind) => ref mind.lastSwamTick, minValid: 0);
+
+        // lastDayInteractionTick is a time of day, not an absolute tick. The roam cooldown is nullable.
+        timestampFields.GetOrAddNew(typeof(Pawn_MindState)).Add((obj, offset) =>
+        {
+            var mind = (Pawn_MindState)obj;
+            if (mind.lastStartRoamCooldownTick is int tick && tick >= 0)
+                mind.lastStartRoamCooldownTick = Math.Max(0, tick + offset);
+        });
+
+        // Pawn_PathFollower
+        Add((Pawn_PathFollower pather) => ref pather.lastMovedTick, minValid: 0);
+        Add((Pawn_PathFollower pather) => ref pather.lastEnteredCellTick, minValid: 0);
+        Add((Pawn_PathFollower pather) => ref pather.failedToFindCloseUnoccupiedCellTicks, minValid: 0);
+        Add((Pawn_PathFollower pather) => ref pather.foundPathWhichCollidesWithPawns, minValid: 0);
+        Add((Pawn_PathFollower pather) => ref pather.foundPathWithDanger, minValid: 0);
+
+        // Other pawn trackers
         Add((Pawn_GuestTracker guest) => ref guest.ticksWhenAllowedToEscapeAgain);
         Add((Pawn_GuestTracker guest) => ref guest.lastPrisonBreakTicks);
-        Add((Need_Food food) => ref food.lastNonStarvingTick);
+        Add((Pawn_ApparelTracker apparel) => ref apparel.lastApparelWearoutTick, minValid: 0);
+        Add((Pawn_HealthTracker health) => ref health.lastReceivedNeuralSuperchargeTick, minValid: 0);
+        Add((Pawn_IdeoTracker ideo) => ref ideo.joinTick);
+        Add((Pawn_PlayerSettings settings) => ref settings.joinTick);
+        Add((Pawn_TrainingTracker training) => ref training.countDecayFrom);
+        Add((Pawn_PsychicEntropyTracker entropy) => ref entropy.lastMeditationTick, minValid: 0);
+        Add((Pawn_RelationsTracker relations) => ref relations.romanceEnableTick, minValid: 0);
+        Add((Pawn_InteractionsTracker interactions) => ref interactions.lastInteractionTime, minValid: 0);
+        Add((Pawn_MeleeVerbs melee) => ref melee.lastTerrainBasedVerbUseTick, minValid: 0);
+
+        // Needs, abilities, skills
+        Add((Need_Food food) => ref food.lastNonStarvingTick, minValid: 0);
         Add((Ability ability) => ref ability.cooldownEndTick);
         Add((Ability ability) => ref ability.lastCastTick, minValid: 0);
         Add((Pawn_SkillTracker skills) => ref skills.lastXpSinceMidnightResetTimestamp, minValid: 0);
+
+        // Royalty
+        Add((Pawn_RoyaltyTracker royalty) => ref royalty.lastDecreeTicks, minValid: 0);
+        Add((RoyalTitle title) => ref title.receivedTick, minValid: 0);
         Add((FactionPermit permit) => ref permit.lastUsedTick, minValid: 1);
-        Add((Pawn_RoyaltyTracker royalty) => ref royalty.lastDecreeTicks);
     }
 
     public static int? currentOffset;
@@ -101,6 +166,16 @@ public static class TimestampFixer
         ProcessExposable(p.needs?.food);
         ProcessExposable(p.skills);
         ProcessExposable(p.royalty);
+        ProcessExposable(p.pather);
+        ProcessExposable(p.apparel);
+        ProcessExposable(p.health);
+        ProcessExposable(p.ideo);
+        ProcessExposable(p.playerSettings);
+        ProcessExposable(p.training);
+        ProcessExposable(p.psychicEntropy);
+        ProcessExposable(p.relations);
+        ProcessExposable(p.interactions);
+        ProcessExposable(p.meleeVerbs);
 
         // Also the abilities of titles, equipment, apparel and hediffs, like the save pass. Not the ideo roles' ones,
         // the ideo holds those
@@ -110,8 +185,13 @@ public static class TimestampFixer
                     ProcessExposable(ability);
 
         if (p.royalty != null)
+        {
+            foreach (var title in p.royalty.AllTitlesForReading)
+                ProcessExposable(title);
+
             foreach (var permit in p.royalty.AllFactionPermits)
                 ProcessExposable(permit);
+        }
     }
 
     // The map whose clock the pawn's saved timestamps belong to: the map it was last on, or the map holding it now.
