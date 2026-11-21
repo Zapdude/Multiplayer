@@ -80,17 +80,22 @@ namespace Multiplayer.Client
     static class ForbiddablePostDrawPatch
     {
         [HarmonyPriority(MpPriority.MpFirst)]
-        static void Prefix(CompForbiddable __instance, ref bool __state)
+        static void Prefix(CompForbiddable __instance, ref (bool ran, bool prior) __state)
         {
+            // The overlay is drawn per client in multifaction; in singleplayer it is the same as vanilla (#613)
+            if (Multiplayer.Client == null) return;
+
             FactionContext.Push(Multiplayer.RealPlayerFaction);
-            __state = __instance.forbiddenInt;
+            __state = (true, __instance.forbiddenInt);
             __instance.forbiddenInt = __instance.Forbidden;
         }
 
         [HarmonyPriority(MpPriority.MpLast)]
-        static void Finalizer(CompForbiddable __instance, bool __state)
+        static void Finalizer(CompForbiddable __instance, (bool ran, bool prior) __state)
         {
-            __instance.forbiddenInt = __state;
+            if (!__state.ran) return;
+
+            __instance.forbiddenInt = __state.prior;
             FactionContext.Pop();
         }
     }

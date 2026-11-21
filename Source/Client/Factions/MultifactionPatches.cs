@@ -226,6 +226,10 @@ static class MainButtonsRootDoButtonsPatch
     [HarmonyPostfix]
     private static void FilterButtons(MainButtonsRoot __instance)
     {
+        // Only a spectator gets a filtered list; in singleplayer leave vanilla's list alone (#613)
+        if (Multiplayer.Client == null)
+            return;
+
         try
         {
             var allButtons = AllButtonsRef(__instance);
@@ -286,7 +290,12 @@ static class DisableDraftGizmo
 {
     static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Pawn_DraftController __instance)
     {
-        return __instance.pawn.Faction == Faction.OfPlayer ? gizmos : Enumerable.Empty<Gizmo>();
+        // Multifaction only: a client may draft its own faction's pawns, not another player's. Vanilla only calls
+        // this for (colony) player pawns, but other mods and dev tools call it directly (#613).
+        if (Multiplayer.Client == null || __instance.pawn.Faction == Faction.OfPlayer)
+            return gizmos;
+
+        return Enumerable.Empty<Gizmo>();
     }
 }
 
