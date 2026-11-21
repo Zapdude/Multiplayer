@@ -72,8 +72,8 @@
       <ModCustomAssemblies Include="$(TargetPath);$(TargetDir)MultiplayerCommon.dll" />
       <ModRuntimeAssemblies Include="@(ReferenceCopyLocalPaths)"
                             Condition="'%(Extension)' == '.dll' and '%(Filename)' != 'MultiplayerCommon'" />
-      <ModSymbols Include="$(TargetDir)Multiplayer.pdb;$(TargetDir)MultiplayerCommon.pdb"
-                  Condition="Exists('%(Identity)')" />
+      <ModSymbols Include="$(TargetDir)Multiplayer.pdb" Condition="Exists('$(TargetDir)Multiplayer.pdb')" />
+      <ModSymbols Include="$(TargetDir)MultiplayerCommon.pdb" Condition="Exists('$(TargetDir)MultiplayerCommon.pdb')" />
     </ItemGroup>
     <RemoveDir Directories="$(ModOutputPath)/1.7/Assemblies;$(ModOutputPath)/1.7/AssembliesCustom" />
     <Copy SourceFiles="@(ModCustomAssemblies);@(ModSymbols)" DestinationFolder="$(ModOutputPath)/1.7/AssembliesCustom/" />
