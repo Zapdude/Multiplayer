@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
@@ -25,6 +25,7 @@
     <ItemGroup>
       <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
       <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
+      <Compile Include="..\Client\Factions\FactionRepeat.cs" Link="Client\FactionRepeat.cs" />
     </ItemGroup>
 
     <ItemGroup>

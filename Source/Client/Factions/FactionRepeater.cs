@@ -16,27 +16,14 @@ namespace Multiplayer.Client
         {
             if (Multiplayer.Client == null || ignore) return true;
 
-            var spectatorId = Multiplayer.WorldComp.spectatorFaction.loadID;
-            ignore = true;
-            foreach (var (id, data) in factionIdToData)
-            {
-                if (id == spectatorId)
-                    continue;
-
-                map.PushFaction(id);
-                try
-                {
-                    dataProcessor(data);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Exception in FactionRepeater for faction {id} {Faction.OfPlayer}: {e}");
-                }
-                map.PopFaction();
-            }
-            ignore = false;
-
-            return false;
+            return FactionRepeat.Run(
+                factionIdToData,
+                dataProcessor,
+                Multiplayer.WorldComp.spectatorFaction.loadID,
+                map.PushFaction,
+                () => map.PopFaction(),
+                (id, e) => Log.Error($"Exception in FactionRepeater for faction {id} {Faction.OfPlayer}: {e}"),
+                ref ignore);
         }
     }
 
