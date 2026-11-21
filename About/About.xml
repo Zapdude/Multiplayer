@@ -8,7 +8,7 @@
   <author>Zapdude</author>
   <url>https://github.com/Zapdude/Multiplayer</url>
   <modVersion>0.11.7</modVersion> <!-- build/apply-version.sh --hash adds the commit hash -->
-  <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above MPCompatability to work correctly.
+  <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above Multiplayer Compatibility to work correctly.
 Requires RimWorld >= 1.6.4491&lt;/b&gt;\n
 
 This is a fork of Multiplayer including upstream PRs targeting desyncs and connection issues, alongside fixes written by me to fix errors I've personally encountered.

@@ -8,7 +8,6 @@
     <OutputPath>bin</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <ReleaseVersion>0.6.2</ReleaseVersion>
     <PublicizeAsReferenceAssemblies>false</PublicizeAsReferenceAssemblies>
     <RootNamespace>Multiplayer.Client</RootNamespace>
     <AssemblyName>Multiplayer</AssemblyName>
