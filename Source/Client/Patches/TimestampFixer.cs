@@ -233,7 +233,16 @@ static class PawnDespawn_RememberMap
     static void Prefix(Pawn __instance)
     {
         if (Multiplayer.Client == null) return;
-        __instance.GetComp<MultiplayerPawnComp>().lastMap = __instance.Map.uniqueID;
+
+        var comp = __instance.GetComp<MultiplayerPawnComp>();
+        if (comp == null) return;
+
+        // DeSpawn is also called on pawns that are already off the map (cleanup, a second despawn, loading).
+        // There is no clock to record then; keep the last real map so a later arrival still converts from it.
+        var map = __instance.Map;
+        if (map == null) return;
+
+        comp.lastMap = map.uniqueID;
     }
 }
 
@@ -243,7 +252,11 @@ static class WorldPawnsRemovePawn_RememberTick
     static void Prefix(Pawn p)
     {
         if (Multiplayer.Client == null) return;
-        p.GetComp<MultiplayerPawnComp>().worldPawnRemoveTick = Multiplayer.AsyncWorldTime.worldTicks;
+
+        var comp = p.GetComp<MultiplayerPawnComp>();
+        if (comp == null) return;
+
+        comp.worldPawnRemoveTick = Multiplayer.AsyncWorldTime.worldTicks;
     }
 }
 
@@ -256,6 +269,7 @@ static class PawnSpawn_FixTimestamp
         if (__instance.Map == null) return;
 
         var comp = __instance.GetComp<MultiplayerPawnComp>();
+        if (comp == null) return;
 
         // World to map: WorldPawns.RemovePawn runs from here (or from DropPodUtility before the spawn) and records
         // the world clock. Drop pods and shuttles from the world take this path.
@@ -288,11 +302,13 @@ static class WorldPawnsAddPawn_FixTimestamp
     {
         if (Multiplayer.Client == null) return;
 
-        var lastMap = p.GetComp<MultiplayerPawnComp>().lastMap;
-        if (lastMap != -1)
-        {
-            TimestampFixer.FixPawn(p, Find.Maps.FirstOrDefault(m => m.uniqueID == lastMap), null);
-            p.GetComp<MultiplayerPawnComp>().lastMap = -1;
-        }
+        var comp = p.GetComp<MultiplayerPawnComp>();
+        if (comp == null) return;
+
+        var lastMap = comp.lastMap;
+        if (lastMap == -1) return;
+
+        TimestampFixer.FixPawn(p, Find.Maps.FirstOrDefault(m => m.uniqueID == lastMap), null);
+        comp.lastMap = -1;
     }
 }
