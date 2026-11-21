@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
   <packageId>zap.multiplayerbodged</packageId>
   <name>Multiplayer Bodged</name>
@@ -7,7 +7,7 @@
   </supportedVersions>
   <author>Zapdude</author>
   <url>https://github.com/Zapdude/Multiplayer</url>
-  <modVersion></modVersion> <!-- filled out by workshop_bundler.sh -->
+  <modVersion>0.11.7</modVersion> <!-- build/apply-version.sh --hash adds the commit hash -->
   <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above MPCompatability to work correctly.
 Requires RimWorld >= 1.6.4491&lt;/b&gt;\n
 
