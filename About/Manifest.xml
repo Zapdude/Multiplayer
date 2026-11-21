@@ -3,7 +3,8 @@
 <Manifest>
 
   <identifier>MultiplayerBodged</identifier>
-  <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/personal/dev-integration/About/Manifest.xml</manifestUri>
+  <!-- Served from the rolling release tag rather than a branch, so renaming the branch cannot break it. -->
+  <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/continuous-1.6/About/Manifest.xml</manifestUri>
   <downloadUri>https://github.com/Zapdude/Multiplayer/releases/latest</downloadUri>
 
 </Manifest>
