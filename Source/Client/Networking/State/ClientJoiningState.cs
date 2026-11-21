@@ -22,7 +22,9 @@ namespace Multiplayer.Client
             bootstrapState = BootstrapServerState.FromPacket(packet);
 
         // Fallback: the joining state deliberately does not inherit base handlers, but the server
-        // may already send the player list while the handshake is still in progress.
+        // may already send the player list while the handshake is still in progress. inheritHandlers
+        // must stay false: inheriting would also register ClientBaseState.HandlePlayerList and
+        // startup throws on the duplicate packet handler.
         [TypedPacketHandler]
         public void HandlePlayerListDuringJoining(ServerPlayerListPacket packet) =>
             ClientBaseState.ApplyPlayerList(packet);

@@ -1,5 +1,6 @@
 using HarmonyLib;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Verse;
@@ -18,7 +19,24 @@ namespace Multiplayer.Client.Patches
         // Compatibility escape hatch: some mods create things that are kept beyond the interface
         // (e.g. VGE2 generates its landing raid crew in the preview coroutine). Forcing global IDs
         // for that scope keeps those things on the shared ID sequence instead of local negative IDs.
+        // Prefer ForceGlobalIds(): it restores the previous value even if the scope throws.
         public static bool forceGlobalIds;
+
+        /// <summary>
+        /// Forces global (shared) IDs until the returned scope is disposed. Nested scopes restore the
+        /// value that was current when they were entered, including when an exception leaves the scope.
+        /// </summary>
+        public static IDisposable ForceGlobalIds()
+        {
+            bool previous = forceGlobalIds;
+            forceGlobalIds = true;
+            return new GlobalIdsScope(previous);
+        }
+
+        private sealed class GlobalIdsScope(bool previous) : IDisposable
+        {
+            public void Dispose() => forceGlobalIds = previous;
+        }
 
         private static bool UseLocalIds =>
             Multiplayer.Client != null
