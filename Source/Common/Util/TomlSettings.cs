@@ -12,7 +12,7 @@ public static class TomlSettings
         var toml = new TomlScribe
         {
             mode = TomlScribeMode.Loading,
-            root = TomlSerializer.Deserialize<TomlTable>(File.ReadAllText(filename)) ?? new TomlTable()
+            root = Toml.ToModel(File.ReadAllText(filename))
         };
 
         ScribeLike.provider = toml;
@@ -34,7 +34,7 @@ public static class TomlSettings
 
         settings.ExposeData();
 
-        return TomlSerializer.Serialize(toml.root);
+        return Toml.FromModel(toml.root);
     }
 }
 
