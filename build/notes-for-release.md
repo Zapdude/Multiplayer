@@ -1,4 +1,4 @@
-﻿### This release tracks the current branch and is rebuilt on every change. The version number names the release line rather than a fixed build; `About/About.xml` records the commit each build was made from. Work-in-progress changes may be broken, incomplete, or incompatible.
+﻿### This release is the rolling 1.7 pre-release channel: `experimental-1.7` is rebuilt on every push. The version number names the release line rather than a fixed build; `About/About.xml` records the commit each build was made from. Work-in-progress changes may be broken, incomplete, or incompatible.
 
 #### Supported RimWorld versions: latest 1.7
 

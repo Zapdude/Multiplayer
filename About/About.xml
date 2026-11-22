@@ -7,7 +7,7 @@
   </supportedVersions>
   <author>Zapdude</author>
   <url>https://github.com/Zapdude/Multiplayer</url>
-  <modVersion>0.12.0-unstable</modVersion> <!-- build/apply-version.sh --hash adds the commit hash -->
+  <modVersion>0.12.0-unstable</modVersion> <!-- apply-version.sh appends the commit hash in hash mode -->
   <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above Multiplayer Bodge Jobs to work correctly.
 RimWorld 1.7 requires Harmony 3&lt;/b&gt;\n
 
