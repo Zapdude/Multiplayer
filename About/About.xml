@@ -7,13 +7,13 @@
   </supportedVersions>
   <author>Zapdude</author>
   <url>https://github.com/Zapdude/Multiplayer</url>
-  <modVersion>0.11.7</modVersion> <!-- build/apply-version.sh --hash adds the commit hash -->
+  <modVersion>0.11.7</modVersion> <!-- apply-version.sh appends the commit hash in hash mode -->
   <description>&lt;b&gt;Important: This mod must be placed right below Core/Expansions and above Multiplayer Compatibility to work correctly.
 Requires RimWorld >= 1.6.4491&lt;/b&gt;\n
 
 This is a fork of Multiplayer including upstream PRs targeting desyncs and connection issues, alongside fixes written by me to fix errors I've personally encountered.
 
-It integrates PRs 996, 998, 1004, 1009, 1010, 1011 onto dev. Full list of changes over Multiplayer 0.11.5 can be found in About/changelog.md.
+It integrates PRs 996, 998, 1004, 1009, 1010, 1011 onto upstream/dev. Full list of changes over Multiplayer 0.11.5 can be found in About/changelog.md.
 
 I will not link to MP's Discord/FAQ because any reports due to using this fork shouldn't go to them. Should be obvious but this fork wouldn't exist without years of hard work from 60+ contributors. It is temporary and for personal use.
   </description>

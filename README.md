@@ -2,7 +2,7 @@
 
 
 
-Multiplayer Bodged is a personal fork of [Multiplayer](https://github.com/rwmt/Multiplayer/) that's built upon the dev branch, includes feisty new PRs, and my own fixes. It's only hosted on GitHub for the sake of my sanity and is solely intended to be used by me and my friends currently. Changes are listed in [About/changelog.md](About/changelog.md).
+Multiplayer Bodged is a personal fork of [Multiplayer](https://github.com/rwmt/Multiplayer/) that's built on `upstream/dev`, includes feisty new PRs, and my own fixes. It's only hosted on GitHub for the sake of my sanity and is solely intended to be used by me and my friends currently. Changes are listed in [About/changelog.md](About/changelog.md).
 
 ## Donations
 
