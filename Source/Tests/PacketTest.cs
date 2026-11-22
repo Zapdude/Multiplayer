@@ -288,12 +288,15 @@ public class PacketTest
         var packetsByType = RoundtripPackets().GroupBy(p => p.GetType());
         foreach (var packetsOfType in packetsByType)
         {
+            // The payload is deflate-compressed; the compressed bytes vary between runs even
+            // though the decompressed packet is identical. A byte snapshot cannot be verified
+            // for these, and auto-verifying one only dirties the working tree. TestRoundtrip
+            // covers them by comparing the deserialized objects.
+            if (UnstablePackets.Contains(packetsOfType.Key))
+                continue;
+
             var binder = RuntimeBinderOf(packetsOfType.Key);
             var text = new StringBuilder();
-            var stable = !UnstablePackets.Contains(packetsOfType.Key);
-            if (!stable)
-                text.Append("This packet is not byte-stable while serialized, meaning it can be serialized" +
-                            " differently due to various factors, but it does deserialize into the same object\n\n");
 
             foreach (var packet in packetsOfType)
             {
@@ -305,7 +308,7 @@ public class PacketTest
             }
 
             await Verify(text).UseDirectory("packet-serializations").UseFileName(packetsOfType.Key.Name).DisableDiff()
-                .AutoVerify(includeBuildServer: !stable);
+                .AutoVerify(includeBuildServer: false);
         }
     }
 
