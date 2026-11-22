@@ -1,4 +1,4 @@
-﻿### This 'alpha' release is an automatically generated snapshot of the current state of development. It is continuously updated with work-in-progress changes that may be broken, incomplete, or incompatible.
+﻿### This release tracks the current branch and is rebuilt on every change. The version number names the release line rather than a fixed build; `About/About.xml` records the commit each build was made from. Work-in-progress changes may be broken, incomplete, or incompatible.
 
 #### Supported RimWorld versions: latest 1.7
 

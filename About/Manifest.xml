@@ -3,8 +3,10 @@
 <Manifest>
 
   <identifier>MultiplayerBodged</identifier>
-  <!-- Served from the rolling release tag rather than a branch, so renaming the branch cannot break it. -->
-  <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/continuous-1.7/About/Manifest.xml</manifestUri>
-  <downloadUri>https://github.com/Zapdude/Multiplayer/releases/tag/continuous-1.7</downloadUri>
+  <!-- The manifest is read from the branch so update checks never go stale on an old install.
+       The download URI names the current version's release tag and is rewritten by
+       build/apply-version.sh, so a version bump moves it automatically. -->
+  <manifestUri>https://raw.githubusercontent.com/Zapdude/Multiplayer/experimental-1.7/About/Manifest.xml</manifestUri>
+  <downloadUri>https://github.com/Zapdude/Multiplayer/releases/tag/v0.12.0-unstable</downloadUri>
 
 </Manifest>
