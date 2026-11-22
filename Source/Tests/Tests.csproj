@@ -31,6 +31,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ChatCommandContracts\ChatCommandContracts.csproj" />
+      <!-- 1.6 only: Common targets net48 because Krafs.Rimworld.Ref 1.6 and RimWorld.MultiplayerAPI
+           are net472. A net10 target would need replacements for both, and the tested surface
+           (server, packets, sync workers) is most of Common, so splitting a testable core would be
+           larger than the tests it serves. The reference works because the net48 assembly only
+           exposes framework and netstandard types; NU1701 is expected here, not a defect. -->
       <ProjectReference Include="..\Common\Common.csproj" />
       <ProjectReference Include="..\SourceGen\SourceGen.csproj" ReferenceOutputAssembly="true" />
     </ItemGroup>
