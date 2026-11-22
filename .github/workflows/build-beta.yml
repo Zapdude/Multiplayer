@@ -20,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
         GH_TOKEN: ${{ github.token }}
-        RELEASE_TAG: continuous-1.6
-        RELEASE_TITLE: Continuous-1.6
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -34,7 +32,10 @@ jobs:
         cache-dependency-path: '**/*.csproj'
 
     - name: Apply fork version
-      run: bash build/apply-version.sh --hash
+      id: version
+      run: |
+        bash build/apply-version.sh --hash | tee "$RUNNER_TEMP/version.txt"
+        grep -E '^(releaseTag|prerelease)=' "$RUNNER_TEMP/version.txt" >> "$GITHUB_OUTPUT"
 
     - name: Install Mod Dependencies
       run: dotnet restore ${{ env.SLN_PATH }}
@@ -81,11 +82,19 @@ jobs:
     
     - name: Clean up last release
       continue-on-error: true
+      env:
+        TAG: ${{ steps.version.outputs.releaseTag }}
       run: |
-        gh release delete --cleanup-tag --yes "$RELEASE_TAG"
+        gh release delete --cleanup-tag --yes "$TAG"
 
     - name: Upload new release
+      env:
+        TAG: ${{ steps.version.outputs.releaseTag }}
+        PRERELEASE: ${{ steps.version.outputs.prerelease }}
       run: |
-        gh release create --target "${{ github.sha }}" --title "$RELEASE_TITLE" --notes-file "build/notes-for-release.md" --draft "$RELEASE_TAG"
-        gh release upload "$RELEASE_TAG" Multiplayer-beta.zip Server-beta.zip
-        gh release edit "$RELEASE_TAG" --draft=false
+        FLAGS=()
+        if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
+        gh release create --target "${{ github.sha }}" --title "$TAG" --notes-file "build/notes-for-release.md" --draft "${FLAGS[@]}" "$TAG"
+        gh release upload "$TAG" Multiplayer-beta.zip Server-beta.zip
+        gh release edit "$TAG" --draft=false
+        if [ "$PRERELEASE" != "true" ]; then gh release edit "$TAG" --latest; fi
