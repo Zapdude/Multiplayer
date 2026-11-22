@@ -24,11 +24,7 @@ public class ClientPatchManifestTest
     [Test]
     public void PatchClassNamesAreUnique()
     {
-        var duplicates = PatchClasses()
-            .GroupBy(p => p.Decl.Identifier.ValueText)
-            .Where(g => g.Count() > 1)
-            .Select(g => $"{g.Key}: {string.Join(", ", g.Select(p => Describe(p)))}")
-            .ToList();
+        var duplicates = DuplicateNames(PatchClasses());
 
         Assert.That(duplicates, Is.Empty,
             "Two patch classes with the same name make Harmony's output ambiguous. Rename one.");
@@ -37,10 +33,7 @@ public class ClientPatchManifestTest
     [Test]
     public void EveryPatchClassHasAnEntryPoint()
     {
-        var missing = PatchClasses()
-            .Where(p => !EntryPoints(p.Decl).Any())
-            .Select(Describe)
-            .ToList();
+        var missing = MissingEntryPoints(PatchClasses());
 
         Assert.That(missing, Is.Empty,
             "A [HarmonyPatch] class with no Prefix/Postfix/Transpiler/Finalizer/TargetMethod never runs.");
@@ -52,11 +45,7 @@ public class ClientPatchManifestTest
         // Harmony lets a Postfix return a replacement for the original result (IEnumerable<T> is used
         // here), but bool is the Prefix convention. On a void-returning method a bool Postfix is
         // silently ignored, which is how a swapped Prefix/Postfix pair hides.
-        var offenders = PatchClasses()
-            .SelectMany(p => EntryPoints(p.Decl)
-                .Where(m => m.Identifier.ValueText == "Postfix" && IsBool(m.ReturnType))
-                .Select(m => $"{Describe(p)}.{m.Identifier.ValueText} returns {m.ReturnType}"))
-            .ToList();
+        var offenders = BoolPostfixes(PatchClasses());
 
         Assert.That(offenders, Is.Empty, "A Postfix returning bool is almost always a mis-typed Prefix.");
     }
@@ -80,11 +69,58 @@ public class ClientPatchManifestTest
         Assert.That(PatchClasses().Count(), Is.GreaterThan(100));
     }
 
-    private static IEnumerable<(ClassDeclarationSyntax Decl, string File)> PatchClasses()
+    [Test]
+    public void ChecksFireOnSyntheticSources()
     {
-        foreach (var file in ClientSourceFiles())
+        // The real tree is clean, so the checks above would also pass if their logic broke.
+        // Feed each check a source that must trip it.
+        var duplicate = new[]
         {
-            var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(file), path: file);
+            ("a.cs", "[HarmonyPatch] public class DuplicatePatch { static bool Prefix() => true; }"),
+            ("b.cs", "[HarmonyPatch] public class DuplicatePatch { static void Postfix() { } }")
+        };
+        Assert.That(DuplicateNames(PatchClasses(duplicate)), Has.Count.EqualTo(1),
+            "The duplicate-name check must fire on two patch classes with the same name");
+
+        var missing = new[]
+        {
+            ("c.cs", "[HarmonyPatch] public class NoEntryPointPatch { static void Helper() { } }")
+        };
+        Assert.That(MissingEntryPoints(PatchClasses(missing)), Has.Count.EqualTo(1),
+            "The entry-point check must fire on a patch class with no entry point");
+
+        var boolPostfix = new[]
+        {
+            ("d.cs", "[HarmonyPatch] public class BoolPostfixPatch { static bool Postfix() => true; }")
+        };
+        Assert.That(BoolPostfixes(PatchClasses(boolPostfix)), Has.Count.EqualTo(1),
+            "The Postfix check must fire on a bool-returning Postfix");
+    }
+
+    private static List<string> DuplicateNames(IEnumerable<(ClassDeclarationSyntax Decl, string File)> patches) =>
+        patches.GroupBy(p => p.Decl.Identifier.ValueText)
+            .Where(group => group.Count() > 1)
+            .Select(group => $"{group.Key}: {string.Join(", ", group.Select(Describe))}")
+            .ToList();
+
+    private static List<string> MissingEntryPoints(IEnumerable<(ClassDeclarationSyntax Decl, string File)> patches) =>
+        patches.Where(patch => !EntryPoints(patch.Decl).Any()).Select(Describe).ToList();
+
+    private static List<string> BoolPostfixes(IEnumerable<(ClassDeclarationSyntax Decl, string File)> patches) =>
+        patches.SelectMany(patch => EntryPoints(patch.Decl)
+                .Where(method => method.Identifier.ValueText == "Postfix" && IsBool(method.ReturnType))
+                .Select(method => $"{Describe(patch)}.{method.Identifier.ValueText} returns {method.ReturnType}"))
+            .ToList();
+
+    private static IEnumerable<(ClassDeclarationSyntax Decl, string File)> PatchClasses() =>
+        PatchClasses(ClientSourceFiles().Select(file => (file, File.ReadAllText(file))));
+
+    private static IEnumerable<(ClassDeclarationSyntax Decl, string File)> PatchClasses(
+        IEnumerable<(string File, string Text)> sources)
+    {
+        foreach (var (file, text) in sources)
+        {
+            var tree = CSharpSyntaxTree.ParseText(text, path: file);
 
             foreach (var decl in tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>())
                 if (HasHarmonyPatch(decl))
