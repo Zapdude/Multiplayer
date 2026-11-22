@@ -98,7 +98,6 @@ namespace Multiplayer.Client
                                 ConfirmLoadingErrors(() =>
                                 {
                                     Find.WindowStack.Add(new ServerBrowser());
-                                    VersionChecker.OpenNewVersionDialogIfApplicable();
                                 });
                             }
                         }));
