@@ -2,6 +2,7 @@ name: Build beta
 
 permissions:
   contents: write
+  actions: write
 
 env:
   SLN_PATH: Source/
@@ -69,7 +70,7 @@ jobs:
         sed -i "s/<name>\(.*\)<\/name>\$/<name>\1 [Continuous]<\/name>/" About/About.xml
         mkdir -p output/Multiplayer
         mv About/ 1.7/ Defs/ Languages/ Textures/ LoadFolders.xml output/Multiplayer
-        find output/Multiplayer/1.7/Languages -mindepth 1 -maxdepth 1 -type f -delete
+        find output/Multiplayer/Languages -mindepth 1 -maxdepth 1 -type f -delete
         cd output/
         zip -r ../Multiplayer-beta.zip Multiplayer/
         zip -r ../Server-beta.zip Server/
@@ -99,3 +100,14 @@ jobs:
         gh release upload "$TAG" Multiplayer-beta.zip Server-beta.zip
         gh release edit "$TAG" --draft=false
         if [ "$PRERELEASE" != "true" ]; then gh release edit "$TAG" --latest; fi
+        # Publishing a draft creates the tag through the API, which does not raise a push event,
+        # so the workshop build that produces the versioned zip is started explicitly.
+        dispatched=false
+        for attempt in 1 2 3 4 5; do
+          if gh workflow run build-workshop.yml --ref "$TAG"; then dispatched=true; break; fi
+          sleep 3
+        done
+        if [ "$dispatched" != true ]; then
+          echo "::error::Could not start the workshop build for $TAG"
+          exit 1
+        fi
