@@ -15,15 +15,32 @@ on:
     paths-ignore:
       - 'README.md'
 
+# Serialize builds of the same branch. A second push waits instead of deleting a
+# release the first run is still uploading.
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build beta
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
         GH_TOKEN: ${{ github.token }}
     steps:
+    - name: Check release branch
+      run: |
+        case "$GITHUB_REF" in
+          refs/heads/master|refs/heads/experimental-1.7) ;;
+          *)
+            echo "::error::Releases build only from master or experimental-1.7 (got $GITHUB_REF)"
+            exit 1
+            ;;
+        esac
+
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
     - name: Setup Dotnet
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -79,17 +96,20 @@ jobs:
         cd ../
 
     - name: Upload Mod Artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: Multiplayer-beta
         path: output/
     
-    - name: Clean up last release
-      continue-on-error: true
+    - name: Delete the previous release for this tag
       env:
         TAG: ${{ steps.version.outputs.releaseTag }}
       run: |
-        gh release delete --cleanup-tag --yes "$TAG"
+        if gh release view "$TAG" >/dev/null 2>&1; then
+          gh release delete --cleanup-tag --yes "$TAG"
+        else
+          echo "No existing release for $TAG"
+        fi
 
     - name: Upload new release
       env:

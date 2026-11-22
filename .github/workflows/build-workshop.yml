@@ -9,15 +9,39 @@ on:
     tags:
       - 'v*'
 
+# Serialize workshop builds for one tag. A stale run skips rather than attaching
+# an archive to a release that has moved on.
+concurrency:
+  group: workshop-${{ github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build workshop
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       with:
         fetch-depth: 0
+
+    - name: Check release tag
+      run: |
+        case "$GITHUB_REF" in
+          refs/tags/v*) ;;
+          *)
+            echo "::error::Workshop builds run only for v* tags (got $GITHUB_REF)"
+            exit 1
+            ;;
+        esac
+        git fetch --no-tags origin master experimental-1.7
+        if git merge-base --is-ancestor "$GITHUB_SHA" origin/master \
+          || git merge-base --is-ancestor "$GITHUB_SHA" origin/experimental-1.7; then
+          exit 0
+        fi
+        echo "::error::Tag $GITHUB_REF_NAME points outside master and experimental-1.7"
+        exit 1
 
     - name: Setup Dotnet
       uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
@@ -34,7 +58,7 @@ jobs:
       run: echo "VERSION=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
 
     - name: Upload mod artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: Multiplayer-${{ steps.get_version.outputs.VERSION }}
         path: Multiplayer-v*.zip
@@ -46,8 +70,16 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         TAG: ${{ github.ref_name }}
       run: |
-        if gh release view "$TAG" >/dev/null 2>&1; then
-          gh release upload "$TAG" Multiplayer-v*.zip --clobber
-        else
+        if ! gh release view "$TAG" >/dev/null 2>&1; then
           echo "::notice::No release exists for $TAG; the zip is in the workflow artifacts."
+          exit 0
         fi
+        # A newer build can delete and recreate this tag while this run is going;
+        # attaching then would put a stale archive on the current release.
+        git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+        CURRENT="$(git rev-parse "$TAG^{commit}")"
+        if [ "$CURRENT" != "$GITHUB_SHA" ]; then
+          echo "::warning::Tag $TAG now points at $CURRENT, not $GITHUB_SHA; not attaching a stale zip."
+          exit 0
+        fi
+        gh release upload "$TAG" Multiplayer-v*.zip --clobber
