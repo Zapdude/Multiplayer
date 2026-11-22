@@ -65,12 +65,15 @@ jobs:
 
         chmod +x output/Server/Linux/Server.sh
 
-    - name: Package files
+    - name: Package mod
       run: |
-        sed -i "s/<name>\(.*\)<\/name>\$/<name>\1 [Continuous]<\/name>/" About/About.xml
-        mkdir -p output/Multiplayer
-        mv About/ 1.7/ Defs/ Languages/ Textures/ LoadFolders.xml output/Multiplayer
-        find output/Multiplayer/Languages -mindepth 1 -maxdepth 1 -type f -delete
+        bash build/package.sh --dest "$RUNNER_TEMP/Multiplayer"
+        mkdir -p output
+        cp -r "$RUNNER_TEMP/Multiplayer" output/Multiplayer
+        bash build/verify-package.sh --dir output/Multiplayer
+
+    - name: Package archives
+      run: |
         cd output/
         zip -r ../Multiplayer-beta.zip Multiplayer/
         zip -r ../Server-beta.zip Server/

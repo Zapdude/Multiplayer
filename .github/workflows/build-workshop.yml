@@ -29,12 +29,6 @@ jobs:
     - name: Run workshop bundler
       run: bash workshop_bundler.sh
 
-    - name: Create output directory
-      run: mkdir -p output
-
-    - name: Move files
-      run: mv Multiplayer/ output/
-
     - name: Name Workshop artifact
       id: get_version
       run: echo "VERSION=${GITHUB_REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
@@ -43,12 +37,10 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Multiplayer-${{ steps.get_version.outputs.VERSION }}
-        path: |
-          Multiplayer-v*.zip
-          output/
+        path: Multiplayer-v*.zip
 
-    # Releases are created outside this workflow (by the continuous build or by
-    # hand), so only attach when one exists for this tag.
+    # Releases are created by build-beta (or by hand), so only attach when one
+    # exists for this tag.
     - name: Attach mod zip to release
       env:
         GH_TOKEN: ${{ github.token }}
