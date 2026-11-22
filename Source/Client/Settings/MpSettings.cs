@@ -17,7 +17,7 @@ namespace Multiplayer.Client
         public bool helpOnlyUsableCommands = true;
         public int autosaveSlots = 5;
         public bool showDevInfo;
-        public bool includeReplayInDesync = VersionChecker.IsContinuousRelease;
+        public bool includeReplayInDesync = true;
         public int jittedMethodsInDesync = 1500;
         public int desyncTracesRadius = 40;
         public string serverAddress = "127.0.0.1";
@@ -64,7 +64,7 @@ namespace Multiplayer.Client
             Scribe_Values.Look(ref helpOnlyUsableCommands, "helpOnlyUsableCommands", true);
             Scribe_Values.Look(ref autosaveSlots, "autosaveSlots", 5);
             Scribe_Values.Look(ref showDevInfo, "showDevInfo");
-            Scribe_Values.Look(ref includeReplayInDesync, "includeReplayInDesync", VersionChecker.IsContinuousRelease);
+            Scribe_Values.Look(ref includeReplayInDesync, "includeReplayInDesync", true);
             Scribe_Values.Look(ref jittedMethodsInDesync, "jittedMethodsInDesync", 1500);
             Scribe_Values.Look(ref desyncTracesRadius, "desyncTracesRadius", 40);
             Scribe_Values.Look(ref serverAddress, "serverAddress", "127.0.0.1");

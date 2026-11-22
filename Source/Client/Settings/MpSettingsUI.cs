@@ -108,8 +108,9 @@ public static class MpSettingsUI
             }
         }
 
-        if (VersionChecker.IsContinuousRelease || VersionChecker.IsLocalBuild)
-            listing.CheckboxLabeled("MpIncludeReplayInDesync".Translate(), ref settings.includeReplayInDesync);
+        // Replays are included unless the player turns this off. The checkbox used to be
+        // hidden for builds that were not "continuous", a channel this fork no longer has.
+        listing.CheckboxLabeled("MpIncludeReplayInDesync".Translate(), ref settings.includeReplayInDesync);
 
         if (Prefs.DevMode)
         {
