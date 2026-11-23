@@ -20,6 +20,10 @@ namespace Multiplayer.Client
 
         public static bool loading;
 
+        // Set while this class writes an exposable of its own (join data, session data). References registered
+        // during that pass are expected to already exist in the shared directory.
+        internal static bool writingExposable;
+
         //dbg
         public static bool removeMapRefs;
         private static List<ILoadReferenceable> removedMapRefs;
@@ -165,11 +169,21 @@ namespace Multiplayer.Client
 
         public static byte[] WriteExposable(IExposable element, string name = RootNode, bool indent = false, Action beforeElement = null)
         {
-            StartWriting(indent);
-            Scribe.EnterNode(RootNode);
-            beforeElement?.Invoke();
-            Scribe_Deep.Look(ref element, name);
-            return FinishWriting();
+            var previous = writingExposable;
+            writingExposable = true;
+
+            try
+            {
+                StartWriting(indent);
+                Scribe.EnterNode(RootNode);
+                beforeElement?.Invoke();
+                Scribe_Deep.Look(ref element, name);
+                return FinishWriting();
+            }
+            finally
+            {
+                writingExposable = previous;
+            }
         }
 
         public static T ReadExposable<T>(byte[] data, Action<T> beforeFinish = null) where T : IExposable
