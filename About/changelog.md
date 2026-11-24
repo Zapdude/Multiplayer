@@ -7,7 +7,7 @@ by hand and fixes of its own.
 This fork is for personal use. Reports about it should not go to the upstream
 team.
 
-**Current fork version:** 0.11.7 (RimWorld 1.6, protocol 58).
+**Current fork version:** 0.11.7 (RimWorld 1.6, protocol 59).
 
 ## Base
 
