@@ -194,7 +194,7 @@ public class PacketTest
             name = "Multiplayer",
             packageIdNonUnique = "rwmt.multiplayer",
             source = ClientInitDataPacket.ModSource.SteamWorkshop,
-            config = null,
+            configs = [],
             files = [],
             publishedFileId = 0,
         };

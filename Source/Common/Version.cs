@@ -7,7 +7,7 @@ namespace Multiplayer.Common
     {
         public const string SimpleVersion = "0.12.0-unstable";
         public const string AssemblyVersion = "0.12.0.0";
-        public const int Protocol = 59;
+        public const int Protocol = 60;
 
         public static readonly string? GitHash = Assembly.GetExecutingAssembly()
             .GetCustomAttributes<AssemblyMetadataAttribute>()

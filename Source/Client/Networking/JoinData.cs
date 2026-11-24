@@ -42,7 +42,7 @@ namespace Multiplayer.Client
                     })
                     .ToList();
 
-                var localConfig = configs.FirstOrDefault(localConfig => localConfig.ModId == meta.PackageIdNonUnique);
+                var localConfig = configs.Where(c => c.ModId == meta.PackageIdNonUnique).ToList();
                 var source = meta.Source switch
                 {
                     ContentSource.Undefined => ClientInitDataPacket.ModSource.Undefined,
@@ -59,13 +59,11 @@ namespace Multiplayer.Client
                     publishedFileId = (ulong)meta.GetPublishedFileId(),
                     source = source,
                     files = files,
-                    config = localConfig == null
-                        ? null
-                        : new ClientInitDataPacket.ModConfig
-                        {
-                            fileName = localConfig.FileName,
-                            contents = localConfig.Contents,
-                        }
+                    configs = localConfig.Select(c => new ClientInitDataPacket.ModConfig
+                    {
+                        fileName = c.FileName,
+                        contents = c.Contents,
+                    }).ToList()
                 };
             }).ToList();
         }
@@ -93,8 +91,9 @@ namespace Multiplayer.Client
                 LanguageMatches(remote.remoteLanguage) &&
                 remote.CompareMods(activeModsSnapshot) == ModListDiff.None &&
                 remote.remoteFiles.DictsEqual(modFilesSnapshot) &&
-                (!remote.hasConfigs || remote.remoteModConfigs.Select(c => c.Comparable()).EqualAsSets(
-                    SyncConfigs.GetSyncableConfigContents(remote.RemoteModIds.ToList()).Select(c => c.Comparable())));
+                (!remote.hasConfigs || ModConfigs.Match(
+                    remote.remoteModConfigs,
+                    SyncConfigs.GetSyncableConfigContents(remote.RemoteModIds.ToList())));
         }
 
         internal static void TakeModDataSnapshot()
@@ -258,9 +257,8 @@ namespace Multiplayer.Client
                         NullIfEmpty(modFile.productVersion), modFile.writeTime));
                 }
 
-                if (mod.config.HasValue)
+                foreach (var modConfig in mod.configs)
                 {
-                    var modConfig = mod.config.Value;
                     remoteInfo.remoteModConfigs.Add(
                         new ModConfig(modInfo.packageId, modConfig.fileName, modConfig.contents));
                 }
@@ -273,14 +271,6 @@ namespace Multiplayer.Client
     public enum ModListDiff
     {
         None, NoMatchAsSets, WrongOrder
-    }
-
-    public record ModConfig(string ModId, string FileName, string Contents)
-    {
-        // Mods write their settings with the platform's line endings, the same settings shouldn't be a mismatch
-        public string ComparableContents => Contents?.Replace("\r\n", "\n").Replace('\r', '\n');
-
-        public ModConfig Comparable() => this with { Contents = ComparableContents };
     }
 
     public class ModFileDict : IEnumerable<KeyValuePair<string, Dictionary<string, ModFile>>>

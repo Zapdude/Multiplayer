@@ -148,7 +148,7 @@ public class ReaderBoundsTest
                 // dev added these after the test was written; leaving them null makes the roundtrip fail
                 assemblyVersion = "1.0.0.0", fileVersion = "1.0.0.0", productVersion = "1.0.0.0", writeTime = i
             }],
-            config = new ClientInitDataPacket.ModConfig { fileName = "Mod_Mod.xml", contents = RandomText(1000) }
+            configs = [new ClientInitDataPacket.ModConfig { fileName = "Mod_Mod.xml", contents = RandomText(1000) }]
         }).ToList();
 
         var initData = new ClientInitDataPacket
@@ -165,6 +165,38 @@ public class ReaderBoundsTest
             rawServerInitData = roundtrip.rawMods
         });
         Assert.That(joinData.ServerInitData, Has.Count.EqualTo(mods.Count));
+    }
+
+    [Test]
+    public void SeveralConfigsForOneModRoundtrip()
+    {
+        // The wire used to carry a single config per mod; a mod with several settings classes lost
+        // all but the first. Every transmitted file must survive the round trip.
+        var configs = Enumerable.Range(0, 3)
+            .Select(i => new ClientInitDataPacket.ModConfig { fileName = $"Mod_Settings{i}.xml", contents = new string((char)('a' + i), 200) })
+            .ToList();
+
+        var initData = new ClientInitDataPacket
+        {
+            rwVersion = "1.6", language = "English", debugOnlySyncCmds = [], hostOnlySyncCmds = [], defInfos = [],
+            Mods =
+            [
+                new ClientInitDataPacket.ModData
+                {
+                    packageIdNonUnique = "a.mod", name = "A", files = [], configs = configs
+                }
+            ]
+        };
+
+        var roundtrip = Roundtrip(initData);
+        var mod = roundtrip.Mods.Single();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(mod.configs, Has.Count.EqualTo(3));
+            Assert.That(mod.configs.Select(c => c.fileName), Is.EqualTo(configs.Select(c => c.fileName)));
+            Assert.That(mod.configs.Select(c => c.contents), Is.EqualTo(configs.Select(c => c.contents)));
+        });
     }
 
     private static T Roundtrip<T>(T packet) where T : struct, IPacket

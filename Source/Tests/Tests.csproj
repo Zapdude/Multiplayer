@@ -25,6 +25,7 @@
       <Compile Include="..\Client\Patches\TimestampMath.cs" Link="Client\TimestampMath.cs" />
       <Compile Include="..\Client\Settings\DesyncTracingMode.cs" Link="Client\DesyncTracingMode.cs" />
       <Compile Include="..\Client\Factions\FactionRepeat.cs" Link="Client\FactionRepeat.cs" />
+      <Compile Include="..\Client\Networking\ModConfigs.cs" Link="Client\ModConfigs.cs" />
       <Compile Include="..\Client\Networking\State\DownloadMeter.cs" Link="Client\DownloadMeter.cs" />
       <Compile Include="..\Client\Desyncs\DesyncTraceCapture.cs" Link="Client\DesyncTraceCapture.cs" />
       <Compile Include="..\Client\Util\DeterministicHash.cs" Link="Client\DeterministicHash.cs" />
