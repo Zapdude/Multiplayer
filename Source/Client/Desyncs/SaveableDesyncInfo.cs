@@ -54,6 +54,17 @@ public class SaveableDesyncInfo(
 
             zip.AddEntry("local_metadata.txt", metadata.Result);
 
+            // Which patches this peer applied, and from which mod. A report says a divergence happened;
+            // this says whether both peers were even running the same patch set.
+            try
+            {
+                zip.AddEntry("patches.json", PatchInventory.Generate());
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Exception writing the patch inventory: {e}");
+            }
+
             try
             {
                 replay.Wait();
