@@ -8,7 +8,7 @@ of its own.
 This fork is for personal use. Reports about it should not go to the upstream
 team.
 
-**Current fork version:** 0.12.0-unstable (RimWorld 1.7, protocol 59).
+**Current fork version:** 0.12.0-unstable (RimWorld 1.7, protocol 60).
 
 ## Base
 
