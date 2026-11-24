@@ -368,6 +368,10 @@ public sealed class PacketWriter(ByteWriter writer) : PacketBuffer(true)
 
     public override void Bind<T>(ref List<T> obj, Binder<T> bind, int maxLength = DefaultMaxLength)
     {
+        // An unset list means "none", not a programming error to crash on: the reader always produces
+        // a list, and the nullable fields this replaced were explicitly written as absent.
+        obj ??= new List<T>();
+
         if (obj.Count > maxLength) throw new WriterException($"List too big ({obj.Count}>{maxLength})");
         writer.WriteInt32(obj.Count);
         for (var i = 0; i < obj.Count; i++)
